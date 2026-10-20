@@ -1,0 +1,478 @@
+:root {
+  --font-heading: 'Cinzel', serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* STRICT PALETTE: Pure Crisp White, Imperial Royal Navy, Master Dark Green */
+  --bg-page: #f8fafc;
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-subtle: #f8fafc;
+  --bg-elevated: #ffffff;
+
+  /* Royal Navy Blue Spectrum */
+  --navy-deep: #0a192f;
+  --navy-dark: #0f2744;
+  --navy-royal: #1e3a8a;
+  --navy-hover: #172554;
+  --navy-tint: #eff6ff;
+  --navy-border: #cbd5e1;
+  --navy-border-light: #e2e8f0;
+
+  /* Master Emerald & Forest Green Spectrum */
+  --green-deep: #14532d;
+  --green-primary: #166534;
+  --green-vibrant: #15803d;
+  --green-hover: #166534;
+  --green-tint: #f0fdf4;
+  --green-border: #86efac;
+
+  /* Typography Colors */
+  --text-main: #0a192f;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+
+  /* Premium Bevels & Depth */
+  --shadow-subtle: 0 1px 3px rgba(10, 25, 47, 0.04);
+  --shadow-card: 0 4px 10px -2px rgba(10, 25, 47, 0.05), 0 2px 4px -2px rgba(10, 25, 47, 0.03);
+  --shadow-hover: 0 10px 20px -3px rgba(10, 25, 47, 0.08), 0 4px 6px -4px rgba(10, 25, 47, 0.04);
+  --shadow-inset-light: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Global Reset & Proportions for 100% Zoom */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  font-family: var(--font-body);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Standard 100% Zoom Desktop Container */
+.app-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  width: 100%;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  letter-spacing: 0.03em;
+  color: var(--navy-deep);
+  font-weight: 700;
+}
+
+/* Elegant Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-page);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--navy-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--navy-royal);
+}
+
+/* Elite Surface Cards */
+.card-clean {
+  background: var(--bg-card);
+  border: 1px solid var(--navy-border-light);
+  border-radius: 8px;
+  box-shadow: var(--shadow-subtle);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-clean:hover {
+  box-shadow: var(--shadow-card);
+}
+
+/* Unique Bespoke Buttons Set */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.2rem;
+  font-family: var(--font-sans);
+  font-size: 0.84rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+  user-select: none;
+  text-decoration: none;
+  position: relative;
+  outline: none;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* 1. Elite Royal Navy Primary Button */
+.btn-primary-navy, .btn-elite-navy {
+  background: var(--navy-deep);
+  color: #ffffff;
+  border-color: #1e3a8a;
+  box-shadow: 0 2px 4px rgba(10, 25, 47, 0.15), var(--shadow-inset-light);
+}
+.btn-primary-navy:hover:not(:disabled), .btn-elite-navy:hover:not(:disabled) {
+  background: var(--navy-hover);
+  border-color: var(--navy-royal);
+  box-shadow: 0 4px 8px rgba(10, 25, 47, 0.2);
+  transform: translateY(-1px);
+}
+
+/* 2. Elite Master Green Action Button */
+.btn-primary-green, .btn-elite-green {
+  background: var(--green-primary);
+  color: #ffffff;
+  border-color: var(--green-vibrant);
+  box-shadow: 0 2px 4px rgba(20, 83, 45, 0.2), var(--shadow-inset-light);
+}
+.btn-primary-green:hover:not(:disabled), .btn-elite-green:hover:not(:disabled) {
+  background: var(--green-deep);
+  border-color: var(--green-primary);
+  box-shadow: 0 4px 8px rgba(20, 83, 45, 0.25);
+  transform: translateY(-1px);
+}
+
+/* 3. Elite Pearl White Secondary Button */
+.btn-secondary-white, .btn-elite-pearl {
+  background: #ffffff;
+  color: var(--navy-deep);
+  border-color: var(--navy-border);
+  box-shadow: var(--shadow-subtle);
+}
+.btn-secondary-white:hover:not(:disabled), .btn-elite-pearl:hover:not(:disabled) {
+  background: var(--bg-secondary);
+  border-color: var(--navy-deep);
+  color: var(--navy-deep);
+  transform: translateY(-1px);
+}
+
+/* 4. Minimal Ghost Button */
+.btn-minimal {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: transparent;
+}
+.btn-minimal:hover:not(:disabled) {
+  color: var(--navy-deep);
+  background: var(--bg-secondary);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Clean Input Elements */
+input, select, textarea {
+  font-family: var(--font-body);
+  background: #ffffff;
+  border: 1px solid var(--navy-border);
+  border-radius: 6px;
+  color: var(--navy-deep);
+  padding: 0.6rem 0.85rem;
+  font-size: 0.88rem;
+  transition: all 0.15s ease;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--navy-royal);
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+}
+
+/* Minimalist Badges & Indicators */
+.badge-minimal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-sans);
+}
+.badge-green {
+  background: var(--green-tint);
+  color: var(--green-deep);
+  border: 1px solid var(--green-border);
+}
+.badge-navy {
+  background: var(--navy-tint);
+  color: var(--navy-royal);
+  border: 1px solid #bfdbfe;
+}
+.badge-muted {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  border: 1px solid var(--navy-border-light);
+}
+
+/* Rating Performance Chips */
+.chip-rating-gain {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--green-deep);
+  background: var(--green-tint);
+  border: 1px solid var(--green-border);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+.chip-rating-loss {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--navy-royal);
+  background: var(--navy-tint);
+  border: 1px solid #bfdbfe;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+/* Elite High-Density Table Layout */
+.table-minimal {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.table-minimal th {
+  background: #ffffff;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.75rem 0.95rem;
+  border-bottom: 1px solid var(--navy-border-light);
+}
+.table-minimal td {
+  padding: 0.75rem 0.95rem;
+  border-bottom: 1px solid var(--navy-border-light);
+  font-size: 0.86rem;
+}
+.table-minimal tr:hover td {
+  background: var(--navy-tint);
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 25, 47, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+.modal-content {
+  background: #ffffff;
+  border: 1px solid var(--navy-border);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(10, 25, 47, 0.1);
+  padding: 2rem;
+}
+
+.print-only {
+  display: none !important;
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .printable-pairing-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.75rem;
+    font-size: 10pt;
+  }
+  .printable-pairing-table th,
+  .printable-pairing-table td {
+    border: 1px solid #1e293b;
+    padding: 6px 8px;
+    text-align: left;
+  }
+  .printable-pairing-table th {
+    background: #f1f5f9;
+    font-weight: 700;
+  }
+}
+
+/* Unique Chess Pairing Animations & Transitions */
+@keyframes crownFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes pairingBeamPulse {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.4;
+  }
+}
+
+@keyframes pieceFloatLeft {
+  0%, 100% {
+    transform: translateY(0px) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+
+@keyframes pieceFloatRight {
+  0%, 100% {
+    transform: translateY(0px) rotate(3deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(-1deg);
+  }
+}
+
+@keyframes boardTiltHover {
+  0%, 100% {
+    transform: perspective(1000px) rotateX(16deg) rotateY(-8deg) rotateZ(3deg);
+  }
+  50% {
+    transform: perspective(1000px) rotateX(20deg) rotateY(-5deg) rotateZ(5deg);
+  }
+}
+
+@keyframes tickerMarquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes dimensionalWipeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95) translateY(-16px);
+    filter: blur(4px);
+  }
+}
+
+@keyframes dimensionalWipeIn {
+  0% {
+    opacity: 0;
+    transform: scale(1.04) translateY(16px);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+}
+
+.animate-dimensional-in {
+  animation: dimensionalWipeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-dimensional-out {
+  animation: dimensionalWipeOut 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Pairing Board Single Full-Width Row */
+.pairing-board-row {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr) 180px minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.65rem 1rem;
+}
+
+@media (max-width: 960px) {
+  .pairing-board-row {
+    grid-template-columns: 50px minmax(0, 1fr) 150px minmax(0, 1fr);
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+  }
+}
+
+@media (max-width: 680px) {
+  .pairing-board-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .desktop-only-badge {
+    display: inline-flex !important;
+  }
+}
