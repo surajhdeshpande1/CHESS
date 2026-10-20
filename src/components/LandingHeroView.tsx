@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   ArrowRight,
   Clock,
@@ -10,6 +10,10 @@ import {
   Building2,
   Zap,
   Printer,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause,
 } from 'lucide-react';
 import { ArbiterProfile, formatArbiterBadge, createGuestOrganizerSession } from '../lib/arbiterAuth';
 
@@ -30,6 +34,28 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
 }) => {
   const [isExiting, setIsExiting] = useState(false);
   const [interactiveScore, setInteractiveScore] = useState<'PENDING' | '1-0' | '0-1' | '1/2-1/2'>('PENDING');
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!videoRef.current) return;
+    const nextMuted = !isMuted;
+    videoRef.current.muted = nextMuted;
+    setIsMuted(nextMuted);
+  };
 
   const handleAction = (callback: () => void) => {
     setIsExiting(true);
@@ -272,6 +298,141 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
           <strong>Club Tournament Organizers</strong>. 100% regulatory Dutch C.04.3 pairings, live 1-tap scoring, and
           Buchholz tie-breaks with zero setup friction.
         </p>
+
+        {/* Cinematic Landing Page Animation Video Showcase */}
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: '680px',
+            margin: '0 auto 1.75rem',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            boxShadow: '0 20px 45px -10px rgba(10, 25, 47, 0.22), 0 0 0 1px rgba(10, 25, 47, 0.1)',
+            background: '#0a192f',
+            aspectRatio: '16/9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <video
+            ref={videoRef}
+            src="/landing.mp4"
+            poster="/hero.png"
+            autoPlay
+            loop
+            muted={isMuted}
+            playsInline
+            onClick={togglePlay}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+              cursor: 'pointer',
+            }}
+          />
+
+          {/* Floating Subtle Engine Badge */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '12px',
+              left: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(10, 25, 47, 0.78)',
+              backdropFilter: 'blur(8px)',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              fontSize: '0.68rem',
+              fontWeight: 700,
+              color: '#ffffff',
+              letterSpacing: '0.04em',
+              pointerEvents: 'none',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+            }}
+          >
+            <span
+              style={{
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                background: isPlaying ? '#4ade80' : '#f59e0b',
+                display: 'inline-block',
+                boxShadow: isPlaying ? '0 0 8px #4ade80' : 'none',
+              }}
+            />
+            <span>{isPlaying ? 'SWISS ENGINE ANIMATION' : 'PAUSED'}</span>
+          </div>
+
+          {/* Controls Bar Overlay */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '12px',
+              right: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              zIndex: 5,
+            }}
+          >
+            {/* Play/Pause Button */}
+            <button
+              type="button"
+              onClick={togglePlay}
+              title={isPlaying ? 'Pause Animation' : 'Play Animation'}
+              style={{
+                background: 'rgba(10, 25, 47, 0.8)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: '#ffffff',
+                borderRadius: '8px',
+                padding: '6px 11px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                cursor: 'pointer',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {isPlaying ? <Pause size={13} /> : <Play size={13} />}
+              <span>{isPlaying ? 'Pause' : 'Play'}</span>
+            </button>
+
+            {/* Audio Mute/Unmute Button */}
+            <button
+              type="button"
+              onClick={toggleMute}
+              title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+              style={{
+                background: 'rgba(10, 25, 47, 0.8)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: isMuted ? 'rgba(255, 255, 255, 0.75)' : '#4ade80',
+                borderRadius: '8px',
+                padding: '6px 11px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                cursor: 'pointer',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+              <span>{isMuted ? 'Unmute' : 'Audio On'}</span>
+            </button>
+          </div>
+        </div>
 
         {/* Interactive Live 1-Tap Scoring Interactive Micro-Board */}
         <div

@@ -35,3 +35,4 @@ dist-ssr
 *.mp4
 *.webm
 *.webp
+!public/landing.mp4
