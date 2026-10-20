@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
-import { X, Award, Shield, User, Trophy, Calendar, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Award, Shield, User, Trophy, Calendar, CheckCircle2, AlertCircle, Sparkles, Printer } from 'lucide-react';
 import { CandidatePlayer, GameResult, TournamentState } from '../lib/fideSwissEngine';
+import { computePlayerFideRatingPerformance } from '../lib/fideExactMathEngine';
 
 interface PlayerMatchDetailsModalProps {
   isOpen: boolean;
@@ -163,17 +165,26 @@ export const PlayerMatchDetailsModal: React.FC<PlayerMatchDetailsModalProps> = (
     }
   }
 
+  const perf = computePlayerFideRatingPerformance(
+    player,
+    playerMap,
+    tournament.tournamentYear || new Date().getFullYear()
+  );
+  const aroVal = perf.averageRatingOfOpponents > 0 ? perf.averageRatingOfOpponents : player.avgOpponentRating;
+  const rpVal = perf.performanceRating > 0 ? perf.performanceRating : player.performanceRating;
+  const ratingDelta = perf.eloRatingChange !== 0 ? perf.eloRatingChange : (player.fideRatingChange ?? 0);
+
   const fideDisplay = player.fideId && player.fideId.toLowerCase() !== 'unranked'
     ? player.fideId
     : 'Unranked';
 
-  return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 10000 }}>
+  const modalContent = (
+    <div className="modal-overlay player-details-modal-overlay" onClick={onClose} style={{ zIndex: 10000 }}>
       <div
-        className="modal-content"
+        className="modal-content player-details-modal-content"
         onClick={(e) => e.stopPropagation()}
         style={{
-          maxWidth: '820px',
+          maxWidth: '860px',
           width: '95%',
           maxHeight: '90vh',
           display: 'flex',
@@ -184,8 +195,9 @@ export const PlayerMatchDetailsModal: React.FC<PlayerMatchDetailsModalProps> = (
           boxShadow: '0 24px 60px rgba(10, 25, 47, 0.25)',
         }}
       >
-        {/* Modal Header */}
+        {/* Modal Header (Screen view) */}
         <div
+          className="no-print"
           style={{
             background: 'var(--navy-deep)',
             color: '#ffffff',
@@ -286,31 +298,58 @@ export const PlayerMatchDetailsModal: React.FC<PlayerMatchDetailsModalProps> = (
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="drawer-close-btn"
-            style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: 'none',
-              color: '#ffffff',
-              cursor: 'pointer',
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1rem',
-            }}
-            title="Close dialog (Esc)"
-          >
-            ✕
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="btn btn-secondary-white no-print"
+              style={{
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                padding: '0.4rem 0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                background: 'rgba(255, 255, 255, 0.15)',
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                cursor: 'pointer',
+                borderRadius: '6px',
+                minHeight: '34px',
+              }}
+              title="Print official FIDE player score dossier"
+            >
+              <Printer size={14} />
+              <span>Print Dossier</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="drawer-close-btn no-print"
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: 'none',
+                color: '#ffffff',
+                cursor: 'pointer',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1rem',
+              }}
+              title="Close dialog (Esc)"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
-        {/* Player Key Metrics Bar */}
+        {/* Player Key Metrics Bar (Screen View) */}
         <div
+          className="no-print"
           style={{
             background: 'var(--bg-secondary)',
             borderBottom: '1px solid var(--navy-border-light)',
@@ -381,8 +420,8 @@ export const PlayerMatchDetailsModal: React.FC<PlayerMatchDetailsModalProps> = (
           </div>
         </div>
 
-        {/* Scrollable Match Details Stream */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem 1.5rem' }}>
+        {/* Scrollable Match Details Stream (Screen View) */}
+        <div className="no-print" style={{ flex: 1, overflowY: 'auto', padding: '1.25rem 1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
             <h3
               style={{
@@ -683,8 +722,234 @@ export const PlayerMatchDetailsModal: React.FC<PlayerMatchDetailsModalProps> = (
           )}
         </div>
 
-        {/* Modal Footer */}
+        {/* =========================================================================
+            OFFICIAL FIDE STANDARD PRINT-ONLY DOSSIER & BULLETIN LAYOUT
+            ========================================================================= */}
+        <div className="print-only fide-dossier-print-container" style={{ padding: '0', color: '#000000', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+          {/* Header Banner */}
+          <div style={{ borderBottom: '2px solid #000000', paddingBottom: '10px', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontSize: '16pt', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                FIDE Swiss Chess Tournament
+              </div>
+              <div style={{ fontSize: '11pt', fontWeight: 600, marginTop: '2px' }}>
+                Official Player Individual Match Dossier & Performance Record
+              </div>
+              <div style={{ fontSize: '8.5pt', color: '#333333', marginTop: '2px' }}>
+                Governed by FIDE Handbook C.04.3 (Dutch Swiss System) & B.02 Rating Regulations
+              </div>
+            </div>
+            <div style={{ textAlign: 'right', fontSize: '8.5pt' }}>
+              <div><strong>Printed:</strong> {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+              <div><strong>System:</strong> FIDE Dutch Swiss</div>
+              <div><strong>Status:</strong> Official Arbiter Record</div>
+            </div>
+          </div>
+
+          {/* Player Identity & Tournament Statistics Box */}
+          <div
+            style={{
+              border: '1.5px solid #000000',
+              padding: '10px 14px',
+              marginBottom: '14px',
+              display: 'grid',
+              gridTemplateColumns: '1.2fr 1fr',
+              gap: '12px',
+              fontSize: '9.5pt',
+              background: '#fafafa',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '13pt', fontWeight: 'bold', marginBottom: '4px' }}>
+                {player.title !== 'NONE' ? `${player.title} ` : ''}{player.name}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '3px 8px', marginTop: '4px' }}>
+                <span style={{ fontWeight: 'bold' }}>FIDE ID:</span>
+                <span>{fideDisplay}</span>
+
+                <span style={{ fontWeight: 'bold' }}>Pairing No (TPN):</span>
+                <span>#{player.tpn}</span>
+
+                <span style={{ fontWeight: 'bold' }}>Current Rank:</span>
+                <span>#{currentRank} of {tournament.players.length}</span>
+
+                <span style={{ fontWeight: 'bold' }}>FIDE Rating:</span>
+                <span>{player.rating > 0 ? player.rating : 'Unrated'}</span>
+
+                <span style={{ fontWeight: 'bold' }}>Federation / Club:</span>
+                <span>{player.organization || 'Independent / Unattached'}</span>
+              </div>
+            </div>
+
+            <div style={{ borderLeft: '1px solid #cccccc', paddingLeft: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: '3px 8px' }}>
+                <span style={{ fontWeight: 'bold' }}>Total Score:</span>
+                <span style={{ fontWeight: 'bold', fontSize: '10.5pt' }}>
+                  {player.score.toFixed(1)} / {resolvedMatches.length} ({player.roundsWon}W - {player.roundsDrawn}D - {player.roundsLost}L)
+                </span>
+
+                <span style={{ fontWeight: 'bold' }}>Opponents Avg (ARO / Ra):</span>
+                <span>{(aroVal ?? 0) > 0 ? aroVal : '—'}</span>
+
+                <span style={{ fontWeight: 'bold' }}>Performance (Rp):</span>
+                <span>{(rpVal ?? 0) > 0 ? rpVal : (player.performanceRating || '—')}</span>
+
+                <span style={{ fontWeight: 'bold' }}>Live FIDE Rating ΔR:</span>
+                <span>{ratingDelta >= 0 ? `+${ratingDelta.toFixed(1)}` : ratingDelta.toFixed(1)}</span>
+
+                <span style={{ fontWeight: 'bold' }}>Buchholz Cut-1 / Tot:</span>
+                <span>{player.tieBreaks.buchholzCut1.toFixed(1)} / {player.tieBreaks.buchholzTotal.toFixed(1)}</span>
+
+                <span style={{ fontWeight: 'bold' }}>Sonneborn-Berger:</span>
+                <span>{player.tieBreaks.sonnebornBerger.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Official Round-by-Round Results Table */}
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontSize: '10.5pt', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.3px' }}>
+              Round-by-Round Official Encounters
+            </div>
+            <table className="fide-standard-print-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9pt' }}>
+              <thead>
+                <tr style={{ background: '#f0f0f0', borderBottom: '2px solid #000000' }}>
+                  <th style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', width: '35px' }}>Rd</th>
+                  <th style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', width: '35px' }}>Bd</th>
+                  <th style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', width: '40px' }}>Col</th>
+                  <th style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', width: '45px' }}>TPN</th>
+                  <th style={{ border: '1px solid #000', padding: '5px 6px', textAlign: 'left' }}>Opponent Name</th>
+                  <th style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', width: '45px' }}>Title</th>
+                  <th style={{ border: '1px solid #000', padding: '5px 6px', textAlign: 'center', width: '80px' }}>FIDE ID</th>
+                  <th style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', width: '50px' }}>Elo</th>
+                  <th style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', width: '55px' }}>Result</th>
+                  <th style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', width: '40px' }}>Pts</th>
+                  <th style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', width: '45px' }}>Prog</th>
+                  <th style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', width: '45px' }}>Float</th>
+                </tr>
+              </thead>
+              <tbody>
+                {resolvedMatches.length === 0 ? (
+                  <tr>
+                    <td colSpan={12} style={{ border: '1px solid #000', padding: '12px', textAlign: 'center' }}>
+                      No official rounds paired yet.
+                    </td>
+                  </tr>
+                ) : (
+                  resolvedMatches.map((m) => {
+                    const opp = m.opponent;
+                    const oppFide = opp?.fideId && opp.fideId.toLowerCase() !== 'unranked' ? opp.fideId : 'Unranked';
+                    const resStr = m.isPending
+                      ? '⏱ In Prog'
+                      : m.isBye
+                      ? '1 - 0 (Bye)'
+                      : m.resultCode === 'WHITE_WIN'
+                      ? (m.color === 'W' ? '1 - 0' : '0 - 1')
+                      : m.resultCode === 'BLACK_WIN'
+                      ? (m.color === 'B' ? '1 - 0' : '0 - 1')
+                      : m.resultCode === 'DRAW'
+                      ? '½ - ½'
+                      : m.resultCode === 'WHITE_FORFEIT_WIN' || m.resultCode === 'BLACK_FORFEIT_WIN'
+                      ? '+ - (FF)'
+                      : '—';
+
+                    const ptsGained = m.playerWon || m.isBye ? '1.0' : m.playerDrew ? '0.5' : '0.0';
+
+                    return (
+                      <tr key={`print-row-${m.roundNumber}`}>
+                        <td style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', fontWeight: 'bold' }}>
+                          {m.roundNumber}
+                        </td>
+                        <td style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center' }}>
+                          {m.boardNumber || '—'}
+                        </td>
+                        <td style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', fontWeight: 'bold' }}>
+                          {m.color === 'W' ? 'White' : m.color === 'B' ? 'Black' : 'Bye'}
+                        </td>
+                        <td style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center' }}>
+                          {opp?.tpn ? `#${opp.tpn}` : '—'}
+                        </td>
+                        <td style={{ border: '1px solid #000', padding: '5px 6px', textAlign: 'left', fontWeight: 600 }}>
+                          {m.isBye ? (m.byeLabel || 'Pairing-Allocated Bye') : (opp?.name || `Opponent ID: ${m.opponentId}`)}
+                        </td>
+                        <td style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center' }}>
+                          {opp?.title && opp.title !== 'NONE' ? opp.title : '—'}
+                        </td>
+                        <td style={{ border: '1px solid #000', padding: '5px 6px', textAlign: 'center', fontFamily: 'monospace' }}>
+                          {m.isBye ? '—' : oppFide}
+                        </td>
+                        <td style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center' }}>
+                          {opp?.rating && opp.rating > 0 ? opp.rating : '—'}
+                        </td>
+                        <td style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', fontWeight: 'bold' }}>
+                          {resStr}
+                        </td>
+                        <td style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', fontWeight: 'bold' }}>
+                          {ptsGained}
+                        </td>
+                        <td style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center' }}>
+                          {m.scoreAfterRound.toFixed(1)}
+                        </td>
+                        <td style={{ border: '1px solid #000', padding: '5px 4px', textAlign: 'center', fontSize: '8pt' }}>
+                          {m.floatType !== 'NONE' ? m.floatType : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+              <tfoot>
+                <tr style={{ background: '#f5f5f5', borderTop: '2px solid #000000', fontWeight: 'bold' }}>
+                  <td colSpan={9} style={{ border: '1px solid #000', padding: '6px 8px', textAlign: 'right' }}>
+                    Total Score Earned Across {resolvedMatches.length} Encounters:
+                  </td>
+                  <td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontSize: '10.5pt' }}>
+                    {player.score.toFixed(1)}
+                  </td>
+                  <td colSpan={2} style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center' }}>
+                    Rank #{currentRank}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          {/* Official FIDE Verification & Signature Section */}
+          <div
+            style={{
+              marginTop: '28px',
+              paddingTop: '12px',
+              borderTop: '1px solid #000000',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '30px',
+              pageBreakInside: 'avoid',
+              fontSize: '8.5pt',
+            }}
+          >
+            <div>
+              <div style={{ fontWeight: 'bold', marginBottom: '32px' }}>
+                Player Signature & Acceptance:
+              </div>
+              <div style={{ borderTop: '1px dashed #000000', paddingTop: '4px' }}>
+                Signature: <strong>{player.name}</strong> / Date: _______________
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontWeight: 'bold', marginBottom: '32px' }}>
+                Chief Arbiter / IA Certification:
+              </div>
+              <div style={{ borderTop: '1px dashed #000000', paddingTop: '4px' }}>
+                Certified Chief Arbiter Signature & Official Stamp: _______________
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Footer (Screen View) */}
         <div
+          className="no-print"
           style={{
             background: 'var(--bg-secondary)',
             borderTop: '1px solid var(--navy-border-light)',
@@ -692,21 +957,47 @@ export const PlayerMatchDetailsModal: React.FC<PlayerMatchDetailsModalProps> = (
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            gap: '1rem',
           }}
         >
-          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-            Official FIDE Dutch C.04.3 Regulatory Dossier
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn btn-primary-navy"
-            style={{ fontSize: '0.82rem', padding: '0.45rem 1.25rem' }}
-          >
-            Close Dossier
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+              Official FIDE Dutch C.04.3 Regulatory Dossier
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="btn btn-outline"
+              style={{
+                fontSize: '0.82rem',
+                padding: '0.45rem 1rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+              title="Print standard FIDE player match dossier"
+            >
+              <Printer size={15} />
+              <span>Print Dossier</span>
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn-primary-navy"
+              style={{ fontSize: '0.82rem', padding: '0.45rem 1.25rem' }}
+            >
+              Close Dossier
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+  return modalContent;
 };

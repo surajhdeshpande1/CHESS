@@ -26,6 +26,21 @@ export const PrintSharePortalView: React.FC<PrintSharePortalViewProps> = ({
     playerMap.set(p.id, p);
   }
 
+  const sortedPlayers = [...tournament.players].sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (b.tieBreaks.directEncounter !== a.tieBreaks.directEncounter)
+      return b.tieBreaks.directEncounter - a.tieBreaks.directEncounter;
+    if (b.tieBreaks.buchholzCut1 !== a.tieBreaks.buchholzCut1)
+      return b.tieBreaks.buchholzCut1 - a.tieBreaks.buchholzCut1;
+    if (b.tieBreaks.buchholzTotal !== a.tieBreaks.buchholzTotal)
+      return b.tieBreaks.buchholzTotal - a.tieBreaks.buchholzTotal;
+    if (b.tieBreaks.sonnebornBerger !== a.tieBreaks.sonnebornBerger)
+      return b.tieBreaks.sonnebornBerger - a.tieBreaks.sonnebornBerger;
+    if (b.tieBreaks.mostWins !== a.tieBreaks.mostWins)
+      return b.tieBreaks.mostWins - a.tieBreaks.mostWins;
+    return a.tpn - b.tpn;
+  });
+
   const currentRoundIdx = tournament.currentRound - 1;
   const currentRoundBoards =
     currentRoundIdx >= 0 && currentRoundIdx < tournament.rounds.length
@@ -236,38 +251,43 @@ export const PrintSharePortalView: React.FC<PrintSharePortalViewProps> = ({
         ) : (
           /* Standings Print Table */
           <div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', color: '#000' }}>
+            <table className="fide-standard-print-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', color: '#000' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #000', background: '#f5f5f5' }}>
-                  <th style={{ padding: '6px 8px', width: '40px', textAlign: 'center' }}>Rk</th>
+                  <th style={{ padding: '6px 8px', width: '35px', textAlign: 'center' }}>Rk</th>
                   <th style={{ padding: '6px 8px', width: '40px' }}>TPN</th>
                   <th style={{ padding: '6px 8px' }}>Candidate Name</th>
-                  <th style={{ padding: '6px 8px', width: '50px' }}>Title</th>
+                  <th style={{ padding: '6px 8px', width: '75px', textAlign: 'center' }}>FIDE ID</th>
+                  <th style={{ padding: '6px 8px', width: '45px' }}>Title</th>
                   <th style={{ padding: '6px 8px', width: '50px', textAlign: 'right' }}>Rtg</th>
-                  <th style={{ padding: '6px 8px', width: '80px', textAlign: 'center' }}>W-D-L</th>
-                  <th style={{ padding: '6px 8px', width: '50px', textAlign: 'center' }}>Pts</th>
-                  <th style={{ padding: '6px 8px', width: '60px', textAlign: 'right' }}>BH-C1</th>
-                  <th style={{ padding: '6px 8px', width: '60px', textAlign: 'right' }}>BH-Tot</th>
-                  <th style={{ padding: '6px 8px', width: '60px', textAlign: 'right' }}>SB</th>
-                  <th style={{ padding: '6px 8px', width: '50px', textAlign: 'center' }}>Wins</th>
+                  <th style={{ padding: '6px 8px', width: '70px', textAlign: 'center' }}>W-D-L</th>
+                  <th style={{ padding: '6px 8px', width: '45px', textAlign: 'center' }}>Pts</th>
+                  <th style={{ padding: '6px 8px', width: '55px', textAlign: 'right' }}>BH-C1</th>
+                  <th style={{ padding: '6px 8px', width: '55px', textAlign: 'right' }}>BH-Tot</th>
+                  <th style={{ padding: '6px 8px', width: '55px', textAlign: 'right' }}>SB</th>
+                  <th style={{ padding: '6px 8px', width: '45px', textAlign: 'center' }}>Wins</th>
                 </tr>
               </thead>
               <tbody>
-                {tournament.players.map((p, idx) => (
-                  <tr key={p.id} style={{ borderBottom: '1px solid #ddd' }}>
-                    <td style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 800 }}>{idx + 1}</td>
-                    <td style={{ padding: '5px 8px', fontFamily: 'monospace' }}>#{p.tpn}</td>
-                    <td style={{ padding: '5px 8px', fontWeight: 700 }}>{p.name}</td>
-                    <td style={{ padding: '5px 8px' }}>{p.title !== 'NONE' ? p.title : '-'}</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: 'monospace' }}>{p.rating}</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'center' }}>{p.roundsWon}-{p.roundsDrawn}-{p.roundsLost}</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 900 }}>{p.score.toFixed(1)}</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'right' }}>{p.tieBreaks.buchholzCut1.toFixed(1)}</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'right' }}>{p.tieBreaks.buchholzTotal.toFixed(1)}</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'right' }}>{p.tieBreaks.sonnebornBerger.toFixed(2)}</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'center' }}>{p.tieBreaks.mostWins}</td>
-                  </tr>
-                ))}
+                {sortedPlayers.map((p, idx) => {
+                  const fideDisplay = p.fideId && p.fideId.toLowerCase() !== 'unranked' ? p.fideId : 'Unranked';
+                  return (
+                    <tr key={p.id} style={{ borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 800 }}>{idx + 1}</td>
+                      <td style={{ padding: '5px 8px', fontFamily: 'monospace' }}>#{p.tpn}</td>
+                      <td style={{ padding: '5px 8px', fontWeight: 700 }}>{p.name}</td>
+                      <td style={{ padding: '5px 8px', textAlign: 'center', fontFamily: 'monospace', fontSize: '0.75rem' }}>{fideDisplay}</td>
+                      <td style={{ padding: '5px 8px', textAlign: 'center' }}>{p.title !== 'NONE' ? p.title : '-'}</td>
+                      <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: 'monospace' }}>{p.rating > 0 ? p.rating : 'Unrated'}</td>
+                      <td style={{ padding: '5px 8px', textAlign: 'center' }}>{p.roundsWon}-{p.roundsDrawn}-{p.roundsLost}</td>
+                      <td style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 900 }}>{p.score.toFixed(1)}</td>
+                      <td style={{ padding: '5px 8px', textAlign: 'right' }}>{p.tieBreaks.buchholzCut1.toFixed(1)}</td>
+                      <td style={{ padding: '5px 8px', textAlign: 'right' }}>{p.tieBreaks.buchholzTotal.toFixed(1)}</td>
+                      <td style={{ padding: '5px 8px', textAlign: 'right' }}>{p.tieBreaks.sonnebornBerger.toFixed(2)}</td>
+                      <td style={{ padding: '5px 8px', textAlign: 'center' }}>{p.tieBreaks.mostWins}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowRight, ArrowLeft, Search, Trophy, TrendingUp, TrendingDown, Eye } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Search, Trophy, TrendingUp, TrendingDown, Eye, Printer } from 'lucide-react';
 import { CandidatePlayer, TournamentState } from '../lib/fideSwissEngine';
 import { computePlayerFideRatingPerformance } from '../lib/fideExactMathEngine';
 import { PlayerMatchDetailsModal } from './PlayerMatchDetailsModal';
@@ -63,6 +63,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
     <div className="app-container" style={{ paddingTop: '1.25rem', paddingBottom: '2.5rem' }}>
       {/* Header Bar */}
       <div
+        className="no-print"
         style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -110,6 +111,17 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
               <span>Back to Matches</span>
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="btn btn-secondary-white"
+            style={{ fontSize: '0.82rem', padding: '0.45rem 0.85rem', fontWeight: 600, gap: '0.4rem' }}
+            title="Print official tournament standings bulletin"
+          >
+            <Printer size={14} />
+            <span>Print Standings</span>
+          </button>
 
           {onOpenPrizes && (
             <button
@@ -162,6 +174,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
 
       {/* Segmented View Switcher: Overall Open Standings vs Age-Category Live Podiums */}
       <div
+        className="no-print"
         style={{
           display: 'inline-flex',
           background: 'var(--bg-subtle, #f1f5f9)',
@@ -213,8 +226,9 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
         <AgeCategoryWinnersView tournament={tournament} />
       ) : (
         <>
-          {/* Helpful Hint banner */}
+          {/* Helpful Hint banner (Screen only) */}
           <div
+            className="no-print"
             style={{
               background: 'rgba(30, 58, 138, 0.05)',
               border: '1px solid rgba(30, 58, 138, 0.15)',
@@ -234,9 +248,31 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
             </span>
           </div>
 
-          {/* Official Standings Table with Sticky Column */}
+          {/* Official Printable Standings Bulletin Header (Print-only) */}
+          <div className="print-only" style={{ borderBottom: '2px solid #000000', paddingBottom: '10px', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ fontSize: '16pt', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {tournament.name || 'FIDE Swiss Chess Championship'}
+                </div>
+                <div style={{ fontSize: '11pt', fontWeight: 600, marginTop: '2px' }}>
+                  Official Tournament Standings Bulletin — After Round {tournament.currentRound} of {tournament.totalRounds}
+                </div>
+                <div style={{ fontSize: '8.5pt', color: '#444444', marginTop: '2px' }}>
+                  Governed by FIDE Handbook C.04.3 (Dutch Swiss) & C.07 Tie-Breaks (Direct Encounter, BH Cut-1, BH Tot, SB, Wins)
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', fontSize: '8.5pt' }}>
+                <div><strong>Printed:</strong> {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                <div><strong>Candidates:</strong> {tournament.players.length} Players</div>
+                <div><strong>Status:</strong> {tournament.status === 'COMPLETED' ? 'Final Standings' : `Active Round ${tournament.currentRound}`}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Official Standings Table */}
           <div className="card-clean" style={{ padding: '0.35rem', overflowX: 'auto' }}>
-        <table className="table-minimal">
+        <table className="table-minimal fide-standard-print-table" style={{ width: '100%' }}>
           <thead>
             <tr>
               <th className="table-sticky-col-rank" style={{ width: '45px', textAlign: 'center' }}>Rk</th>
@@ -252,7 +288,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
               <th style={{ width: '75px', textAlign: 'right' }}>ARO (Ra)</th>
               <th style={{ width: '85px', textAlign: 'right' }}>Perf (Rp)</th>
               <th style={{ width: '80px', textAlign: 'right' }}>ΔR (Elo)</th>
-              <th style={{ width: '70px', textAlign: 'center' }}>Details</th>
+              <th className="no-print" style={{ width: '70px', textAlign: 'center' }}>Details</th>
             </tr>
           </thead>
           <tbody>
@@ -368,7 +404,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
                       </span>
                     )}
                   </td>
-                  <td style={{ textAlign: 'center' }}>
+                  <td className="no-print" style={{ textAlign: 'center' }}>
                     <span
                       style={{
                         background: 'var(--bg-secondary)',
@@ -389,6 +425,38 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Official Arbiter Certification Signature Block (Print-Only) */}
+      <div
+        className="print-only"
+        style={{
+          marginTop: '28px',
+          paddingTop: '12px',
+          borderTop: '1px solid #000000',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '30px',
+          pageBreakInside: 'avoid',
+          fontSize: '8.5pt',
+        }}
+      >
+        <div>
+          <div style={{ fontWeight: 'bold', marginBottom: '32px' }}>
+            Chief Arbiter Certification:
+          </div>
+          <div style={{ borderTop: '1px dashed #000000', paddingTop: '4px' }}>
+            Chief Arbiter Signature & Official Stamp: _______________
+          </div>
+        </div>
+        <div>
+          <div style={{ fontWeight: 'bold', marginBottom: '32px' }}>
+            Tournament Director / Organizer:
+          </div>
+          <div style={{ borderTop: '1px dashed #000000', paddingTop: '4px' }}>
+            Organizer Signature & Date: _______________
+          </div>
+        </div>
       </div>
     </>
   )}
