@@ -100,17 +100,17 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
         inset: 0,
         width: '100vw',
         height: '100vh',
-        background: '#ffffff',
+        background: '#edeae4',
         overflow: 'hidden',
         zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        padding: 0,
+        margin: 0,
       }}
     >
-      {/* Optimized Responsive Video: Perfectly sized for laptop and mobile screens without cropping */}
+      {/* Edge-to-Edge Responsive Video: Covers full screen with zero white lines, borders, or gaps */}
       <video
         ref={videoRef}
         key={currentVideoSrc}
@@ -123,13 +123,14 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
         onTimeUpdate={handleTimeUpdate}
         onEnded={() => handleAction(onProceedToAuth)}
         style={{
+          position: 'absolute',
+          inset: 0,
           width: '100%',
           height: '100%',
-          maxWidth: '100vw',
-          maxHeight: '100vh',
-          objectFit: 'contain',
+          objectFit: 'cover',
+          objectPosition: 'center center',
           display: 'block',
-          backgroundColor: '#ffffff',
+          backgroundColor: '#edeae4',
           zIndex: 1,
         }}
       />
