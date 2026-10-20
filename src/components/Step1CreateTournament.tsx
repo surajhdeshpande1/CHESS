@@ -1,6 +1,19 @@
 import React, { useState } from 'react';
-import { ArrowRight, ArrowLeft, Clock, ChevronDown, ChevronUp, Zap, Shield, Flame } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowLeft,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  Zap,
+  Shield,
+  Flame,
+  Trophy,
+  Check,
+  Sparkles,
+} from 'lucide-react';
 import { EligibilityRules, TournamentState } from '../lib/fideSwissEngine';
+import { AgePrizeSettings, AgeCategoryDefinition } from '../lib/ageCategoryEngine';
 
 interface Step1CreateTournamentProps {
   tournament: TournamentState;
@@ -12,7 +25,8 @@ interface Step1CreateTournamentProps {
     newRoundMinutes?: number,
     newIncrementSeconds?: number,
     newTimeControlCategory?: 'CLASSICAL' | 'RAPID' | 'BLITZ' | 'CUSTOM',
-    newTimeControlName?: string
+    newTimeControlName?: string,
+    newAgeSettings?: AgePrizeSettings
   ) => void;
   onProceedToPlayers: () => void;
   onGoBack?: () => void;
@@ -161,6 +175,38 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
   const [allowUnrated, setAllowUnrated] = useState(tournament.rules.allowUnrated ?? true);
   const [gender, setGender] = useState<'OPEN' | 'FEMALE_ONLY'>(tournament.rules.allowedGender || 'OPEN');
 
+  // Simplified Age Category Selection State
+  const tourneyYear = tournament.tournamentYear || new Date().getFullYear();
+  const AVAILABLE_AGE_CATEGORIES = [
+    { id: 'u7', label: 'Under-7', maxAge: 7, minAge: null, cutoff: `Born ${tourneyYear - 7} or later` },
+    { id: 'u9', label: 'Under-9', maxAge: 9, minAge: null, cutoff: `Born ${tourneyYear - 9} or later` },
+    { id: 'u11', label: 'Under-11', maxAge: 11, minAge: null, cutoff: `Born ${tourneyYear - 11} or later` },
+    { id: 'u13', label: 'Under-13', maxAge: 13, minAge: null, cutoff: `Born ${tourneyYear - 13} or later` },
+    { id: 'u15', label: 'Under-15', maxAge: 15, minAge: null, cutoff: `Born ${tourneyYear - 15} or later` },
+    { id: 'u17', label: 'Under-17', maxAge: 17, minAge: null, cutoff: `Born ${tourneyYear - 17} or later` },
+    { id: 'u19', label: 'Under-19', maxAge: 19, minAge: null, cutoff: `Born ${tourneyYear - 19} or later` },
+    { id: 'v50', label: 'Veteran 50+', maxAge: null, minAge: 50, cutoff: `Born ${tourneyYear - 50} or earlier` },
+    { id: 'v65', label: 'Veteran 65+', maxAge: null, minAge: 65, cutoff: `Born ${tourneyYear - 65} or earlier` },
+  ];
+
+  const [hasAgeCategories, setHasAgeCategories] = useState<boolean>(() => {
+    return tournament.rules.hasAgeCategories ?? true;
+  });
+  const [selectedAgeCats, setSelectedAgeCats] = useState<string[]>(() => {
+    if (tournament.rules.enabledAgeCategories && tournament.rules.enabledAgeCategories.length > 0) {
+      return tournament.rules.enabledAgeCategories;
+    }
+    return ['u9', 'u11', 'u13', 'u15', 'u19'];
+  });
+  const [winnersCount, setWinnersCount] = useState<number>(3);
+  const [splitBoysGirls, setSplitBoysGirls] = useState<boolean>(false);
+
+  const toggleAgeCategory = (catId: string) => {
+    setSelectedAgeCats((prev) =>
+      prev.includes(catId) ? prev.filter((id) => id !== catId) : [...prev, catId]
+    );
+  };
+
   const handlePresetChange = (presetId: string) => {
     setSelectedPresetId(presetId);
     const preset = TIME_CONTROL_PRESETS.find((p) => p.id === presetId);
@@ -183,6 +229,51 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
     const finalName = name.trim() || 'Official Swiss Championship';
     const finalDisplay = getTimeControlDisplay();
 
+    const finalCategories: AgeCategoryDefinition[] = [];
+    if (hasAgeCategories) {
+      for (const catId of selectedAgeCats) {
+        const found = AVAILABLE_AGE_CATEGORIES.find((c) => c.id === catId);
+        if (!found) continue;
+        if (splitBoysGirls && found.maxAge !== null) {
+          finalCategories.push({
+            id: `${catId}_boys`,
+            label: `${found.label} Boys / Open`,
+            minAge: found.minAge,
+            maxAge: found.maxAge,
+            genderDivision: 'BOYS_ONLY',
+            winnersCount,
+            isEnabled: true,
+          });
+          finalCategories.push({
+            id: `${catId}_girls`,
+            label: `${found.label} Girls`,
+            minAge: found.minAge,
+            maxAge: found.maxAge,
+            genderDivision: 'GIRLS_ONLY',
+            winnersCount,
+            isEnabled: true,
+          });
+        } else {
+          finalCategories.push({
+            id: `${catId}_open`,
+            label: `${found.label} (All)`,
+            minAge: found.minAge,
+            maxAge: found.maxAge,
+            genderDivision: 'OPEN_ALL',
+            winnersCount,
+            isEnabled: true,
+          });
+        }
+      }
+    }
+
+    const finalAgeSettings: AgePrizeSettings = {
+      openMainPrizesCount: 5,
+      excludeOpenMainWinnersFromAgePrizes: true,
+      overlapMode: 'NATURAL_BAND',
+      categories: finalCategories,
+    };
+
     onUpdateRules(
       {
         minPlayers: Number(minPlayers) || 2,
@@ -194,6 +285,8 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
         maxAge: null,
         allowedGender: gender,
         allowedOrganizations: tournament.rules.allowedOrganizations,
+        hasAgeCategories,
+        enabledAgeCategories: hasAgeCategories ? selectedAgeCats : [],
       },
       finalName,
       Number(rounds),
@@ -201,7 +294,8 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
       Number(baseMinutes),
       Number(incrementSeconds),
       category,
-      finalDisplay
+      finalDisplay,
+      finalAgeSettings
     );
     onProceedToPlayers();
   };
@@ -468,6 +562,285 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
               {getTimeControlDisplay()}
             </strong>
           </div>
+        </div>
+
+        {/* ================================================================== */}
+        {/* SIMPLIFIED AGE CATEGORIES & PODIUM CONFIGURATION                   */}
+        {/* ================================================================== */}
+        <div
+          style={{
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--navy-border-light)',
+            borderRadius: '10px',
+            padding: '1.25rem 1.5rem',
+            marginBottom: '1.75rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Trophy size={17} color="#d97706" />
+              <span
+                style={{
+                  fontSize: '0.84rem',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  color: 'var(--navy-deep)',
+                }}
+              >
+                Age Category Podiums & Trophies
+              </span>
+            </div>
+            <span className="badge-minimal badge-green">
+              FIDE DUTCH OPEN + LIVE PODIUMS
+            </span>
+          </div>
+
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '1rem' }}>
+            All candidates play together in one unified Open Swiss pool. The system automatically classifies players by birth year and awards separate podium trophies for your selected categories.
+          </p>
+
+          {/* Simple Choice: Pure Open vs Open + Age Categories */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div
+              onClick={() => setHasAgeCategories(false)}
+              style={{
+                padding: '0.85rem 1rem',
+                borderRadius: '8px',
+                border: !hasAgeCategories ? '2px solid var(--navy-royal)' : '1px solid var(--navy-border-light)',
+                background: !hasAgeCategories ? '#ffffff' : 'transparent',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  type="radio"
+                  name="ageCategoryMode"
+                  checked={!hasAgeCategories}
+                  onChange={() => setHasAgeCategories(false)}
+                  style={{ accentColor: 'var(--navy-royal)', cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--navy-deep)' }}>
+                  Pure Open Tournament
+                </span>
+              </div>
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginLeft: '1.4rem', marginTop: '0.2rem' }}>
+                Single Open Swiss standings. No age-category trophies.
+              </div>
+            </div>
+
+            <div
+              onClick={() => setHasAgeCategories(true)}
+              style={{
+                padding: '0.85rem 1rem',
+                borderRadius: '8px',
+                border: hasAgeCategories ? '2px solid #16a34a' : '1px solid var(--navy-border-light)',
+                background: hasAgeCategories ? '#ffffff' : 'transparent',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  type="radio"
+                  name="ageCategoryMode"
+                  checked={hasAgeCategories}
+                  onChange={() => setHasAgeCategories(true)}
+                  style={{ accentColor: '#16a34a', cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--navy-deep)' }}>
+                  Open + Age Category Podiums
+                </span>
+              </div>
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginLeft: '1.4rem', marginTop: '0.2rem' }}>
+                Unified Open pairing + separate age trophies (Under-9, 11, 13, etc.).
+              </div>
+            </div>
+          </div>
+
+          {/* When enabled: Presets & Category Chips */}
+          {hasAgeCategories && (
+            <div>
+              {/* 1-Click Presets */}
+              <div style={{ marginBottom: '0.85rem' }}>
+                <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
+                  Quick 1-Click Presets for Organizers:
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAgeCats(['u9', 'u11', 'u13', 'u15'])}
+                    className="btn btn-secondary-white"
+                    style={{ fontSize: '0.74rem', padding: '0.35rem 0.65rem', fontWeight: 700 }}
+                  >
+                    ⚡ Junior Standard (U9, U11, U13, U15)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAgeCats(['u7', 'u9', 'u11', 'u13', 'u15', 'u17', 'u19'])}
+                    className="btn btn-secondary-white"
+                    style={{ fontSize: '0.74rem', padding: '0.35rem 0.65rem', fontWeight: 700 }}
+                  >
+                    🎯 All Youth (U7–U19)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAgeCats(['u11', 'u14', 'u17'])}
+                    className="btn btn-secondary-white"
+                    style={{ fontSize: '0.74rem', padding: '0.35rem 0.65rem', fontWeight: 700 }}
+                  >
+                    🏫 School Divisions (U11, U14, U17)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAgeCats(['v50', 'v65'])}
+                    className="btn btn-secondary-white"
+                    style={{ fontSize: '0.74rem', padding: '0.35rem 0.65rem', fontWeight: 700 }}
+                  >
+                    🎖 Seniors (50+, 65+)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAgeCats([])}
+                    style={{
+                      fontSize: '0.72rem',
+                      padding: '0.35rem 0.6rem',
+                      background: 'transparent',
+                      border: '1px dashed var(--navy-border-light)',
+                      color: 'var(--text-muted)',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+
+              {/* Interactive Category Chips Grid */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                  gap: '0.65rem',
+                  marginBottom: '1rem',
+                }}
+              >
+                {AVAILABLE_AGE_CATEGORIES.map((cat) => {
+                  const isSelected = selectedAgeCats.includes(cat.id);
+                  return (
+                    <div
+                      key={cat.id}
+                      onClick={() => toggleAgeCategory(cat.id)}
+                      style={{
+                        padding: '0.65rem 0.85rem',
+                        borderRadius: '8px',
+                        border: isSelected ? '2px solid #16a34a' : '1px solid var(--navy-border-light)',
+                        background: isSelected ? 'rgba(22, 163, 74, 0.08)' : '#ffffff',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontSize: '0.84rem', fontWeight: 800, color: isSelected ? '#15803d' : 'var(--navy-deep)' }}>
+                          {cat.label}
+                        </div>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                          {cat.cutoff}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          width: '18px',
+                          height: '18px',
+                          borderRadius: '4px',
+                          border: isSelected ? 'none' : '1px solid var(--navy-border)',
+                          background: isSelected ? '#16a34a' : '#ffffff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#ffffff',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isSelected && <Check size={12} strokeWidth={3} />}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Trophies per Category & Gender Division */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
+                  gap: '1rem',
+                  paddingTop: '0.85rem',
+                  borderTop: '1px dashed var(--navy-border-light)',
+                  alignItems: 'center',
+                }}
+              >
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
+                    Trophies Awarded Per Category:
+                  </label>
+                  <select
+                    value={winnersCount}
+                    onChange={(e) => setWinnersCount(Number(e.target.value))}
+                    style={{ width: '100%', padding: '0.5rem 0.75rem', fontSize: '0.82rem', fontWeight: 700 }}
+                  >
+                    <option value={1}>Top 1 Trophy (Champion Only)</option>
+                    <option value={3}>Top 3 Trophies (1st, 2nd, 3rd Place - Standard)</option>
+                    <option value={5}>Top 5 Medals / Trophies (1st to 5th Place)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      cursor: 'pointer',
+                      marginTop: '1.25rem',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      color: 'var(--navy-deep)',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={splitBoysGirls}
+                      onChange={(e) => setSplitBoysGirls(e.target.checked)}
+                      style={{ accentColor: 'var(--navy-royal)', cursor: 'pointer' }}
+                    />
+                    <span>Split into Separate Boys & Girls Podiums</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* FIDE Dispute-Proof Engine Guarantee */}
+              <div
+                style={{
+                  marginTop: '0.85rem',
+                  padding: '0.6rem 0.85rem',
+                  borderRadius: '6px',
+                  background: 'rgba(22, 163, 74, 0.08)',
+                  border: '1px solid rgba(22, 163, 74, 0.2)',
+                  fontSize: '0.74rem',
+                  color: '#15803d',
+                  lineHeight: 1.45,
+                }}
+              >
+                <strong>🛡️ Dispute-Proof Guarantee:</strong> All players compete in the main Open pairing pool. FIDE C.07 tie-breaks (Buchholz Cut-1, Sonneborn-Berger, Most Wins) will automatically rank contenders in each age category for the prize distribution.
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Advanced FIDE Eligibility Rules (Drawer) */}

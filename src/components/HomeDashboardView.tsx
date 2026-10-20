@@ -24,6 +24,8 @@ import { isSupabaseConfigured } from '../lib/supabaseClient';
 interface HomeDashboardViewProps {
   activeArbiter: ArbiterProfile | null;
   tournament: TournamentState;
+  hasUserOrganizedTournament?: boolean;
+  userTournamentsCount?: number;
   onEnterActiveTournament: () => void;
   onCreateNewTournament: () => void;
   onLaunchDemoTournament: () => void;
@@ -33,11 +35,14 @@ interface HomeDashboardViewProps {
   onBackToIntro?: () => void;
   onSignOut: () => void;
   onOpenOrganizerHub?: () => void;
+  isAdmin?: boolean;
 }
 
 export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
   activeArbiter,
   tournament,
+  hasUserOrganizedTournament = false,
+  userTournamentsCount = 0,
   onEnterActiveTournament,
   onCreateNewTournament,
   onLaunchDemoTournament,
@@ -47,8 +52,17 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
   onBackToIntro,
   onSignOut,
   onOpenOrganizerHub,
+  isAdmin = false,
 }) => {
-  const hasExistingTournament = tournament.players.length > 0 || Boolean(tournament.name);
+  const isOwner =
+    isAdmin ||
+    hasUserOrganizedTournament ||
+    (activeArbiter &&
+      (tournament.organizerId === activeArbiter.id ||
+        (tournament.organizerEmail &&
+          tournament.organizerEmail.toLowerCase() === activeArbiter.email.toLowerCase())));
+
+  const hasExistingTournament = isOwner && (tournament.players.length > 0 || Boolean(tournament.name));
   const isCompleted = tournament.status === 'COMPLETED';
   const isInProgress = tournament.status === 'IN_PROGRESS';
 
@@ -271,7 +285,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
         </div>
 
         {/* ACTIVE TOURNAMENT RESUME HERO CARD (If exists) */}
-        {hasExistingTournament && (
+        {hasExistingTournament ? (
           <div
             className="card-clean"
             style={{
@@ -332,6 +346,45 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
                   <ArrowRight size={15} />
                 </button>
               </div>
+            </div>
+          </div>
+        ) : (
+          <div
+            className="card-clean"
+            style={{
+              padding: '1.75rem',
+              marginBottom: '2rem',
+              borderLeft: '5px solid #10b981',
+              background: 'linear-gradient(180deg, #ffffff 0%, var(--bg-subtle) 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '1.25rem',
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                <span className="badge-minimal badge-green">✦ READY TO ORGANIZE</span>
+                <span className="badge-minimal badge-muted">YOUR DASHBOARD</span>
+              </div>
+              <h2 style={{ fontSize: '1.35rem', color: 'var(--navy-deep)', fontWeight: 800, marginBottom: '0.3rem' }}>
+                No Active Tournament Running Yet
+              </h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0, maxWidth: '580px' }}>
+                Start by clicking <strong>Create New Tournament</strong> to configure Swiss rounds, time control, and age categories, or import an Excel/Word player list.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={onCreateNewTournament}
+                className="btn btn-primary-green"
+                style={{ padding: '0.65rem 1.4rem', fontWeight: 800, fontSize: '0.88rem' }}
+              >
+                <span>+ Create Tournament</span>
+                <ArrowRight size={15} />
+              </button>
             </div>
           </div>
         )}

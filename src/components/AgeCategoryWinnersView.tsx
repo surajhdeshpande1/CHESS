@@ -16,8 +16,16 @@ interface Props {
 }
 
 export const AgeCategoryWinnersView: React.FC<Props> = ({ tournament, isDarkTheme = false }) => {
-  const [settings, setSettings] = useState<AgePrizeSettings>(DEFAULT_AGE_PRIZE_SETTINGS);
+  const [settings, setSettings] = useState<AgePrizeSettings>(
+    tournament.agePrizeSettings || DEFAULT_AGE_PRIZE_SETTINGS
+  );
   const [showFullCategoryTables, setShowFullCategoryTables] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (tournament.agePrizeSettings) {
+      setSettings(tournament.agePrizeSettings);
+    }
+  }, [tournament.agePrizeSettings]);
 
   // Organizer Custom Category Form State
   const [newLabel, setNewLabel] = useState<string>('');

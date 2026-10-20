@@ -6,12 +6,16 @@ import {
   cloneTournamentTemplate,
 } from '../lib/organizerWorkspaceManager';
 
+import { ArbiterProfile } from '../lib/arbiterAuth';
+
 interface Props {
   workspace: OrganizerWorkspace;
   onUpdateWorkspace: (next: OrganizerWorkspace) => void;
   onOpenTournament: (tournamentId: string) => void;
   isDarkTheme?: boolean;
   onBackToApp?: () => void;
+  activeArbiter?: ArbiterProfile | null;
+  isAdmin?: boolean;
 }
 
 export const OrganizerDashboardHub: React.FC<Props> = ({
@@ -20,9 +24,12 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
   onOpenTournament,
   isDarkTheme = true,
   onBackToApp,
+  activeArbiter,
+  isAdmin = false,
 }) => {
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'REGISTRATION' | 'IN_PROGRESS' | 'COMPLETED'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [adminViewScope, setAdminViewScope] = useState<'MINE' | 'ALL'>(isAdmin ? 'ALL' : 'MINE');
 
   // New Tournament Modal Form State
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -35,7 +42,16 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
   const [newGender, setNewGender] = useState<'OPEN' | 'FEMALE_ONLY'>('OPEN');
   const [newBakuAccel, setNewBakuAccel] = useState<boolean>(false);
 
-  const summaries = useMemo(() => getOrganizerTournamentSummaries(workspace), [workspace]);
+  // Filter summaries strictly for current user unless admin chooses ALL
+  const isSuperadminAll = isAdmin && adminViewScope === 'ALL';
+  const summaries = useMemo(() => {
+    return getOrganizerTournamentSummaries(
+      workspace,
+      activeArbiter?.id,
+      activeArbiter?.email,
+      isSuperadminAll
+    );
+  }, [workspace, activeArbiter, isSuperadminAll]);
 
   const filteredSummaries = useMemo(() => {
     return summaries.filter((t) => {
@@ -65,7 +81,10 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
       Math.min(200, newMaxPlayers),
       newMaxRating.trim() ? Number(newMaxRating) : null,
       newMaxAge.trim() ? Number(newMaxAge) : null,
-      newGender
+      newGender,
+      activeArbiter?.id,
+      activeArbiter?.email,
+      activeArbiter?.name
     );
 
     const now = new Date().toISOString();
@@ -78,6 +97,9 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
           createdAtISO: now,
           lastUpdatedISO: now,
           bakuAcceleration: newBakuAccel,
+          organizerId: activeArbiter?.id,
+          organizerEmail: activeArbiter?.email,
+          organizerName: activeArbiter?.name,
           vault,
         },
       },
@@ -224,12 +246,60 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
                 </span>
               </div>
               <p style={{ margin: '0.25rem 0 0', fontSize: '0.82rem', color: textMuted }}>
-                {workspace.organizationTitle} • Organized by <strong>{workspace.organizerName}</strong>
+                {isAdmin ? (
+                  <span>👑 Website Superadmin Console • {isSuperadminAll ? 'Viewing all platform tournaments' : `Viewing only tournaments organized by ${activeArbiter?.name || 'you'}`}</span>
+                ) : (
+                  <span>Organizer Workspace • Showing only tournaments organized by <strong>{activeArbiter?.name || workspace.organizerName}</strong></span>
+                )}
               </p>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            {isAdmin && (
+              <div
+                style={{
+                  display: 'inline-flex',
+                  borderRadius: '10px',
+                  background: isDarkTheme ? '#1e293b' : '#e2e8f0',
+                  padding: '3px',
+                  border: `1px solid ${cardBorder}`,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setAdminViewScope('ALL')}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    background: adminViewScope === 'ALL' ? '#f59e0b' : 'transparent',
+                    color: adminViewScope === 'ALL' ? '#0a192f' : textPrimary,
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  👑 All Tournaments
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAdminViewScope('MINE')}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    background: adminViewScope === 'MINE' ? '#f59e0b' : 'transparent',
+                    color: adminViewScope === 'MINE' ? '#0a192f' : textPrimary,
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  👤 My Tournaments
+                </button>
+              </div>
+            )}
             <label
               style={{
                 padding: '0.55rem 0.95rem',
@@ -453,7 +523,44 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
             gap: '1.25rem',
           }}
         >
-          {filteredSummaries.map((t) => {
+          {filteredSummaries.length === 0 ? (
+            <div
+              style={{
+                gridColumn: '1 / -1',
+                textAlign: 'center',
+                padding: '4rem 1.5rem',
+                background: cardBg,
+                borderRadius: '16px',
+                border: `1px dashed ${cardBorder}`,
+              }}
+            >
+              <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>♟️</div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: textPrimary, marginBottom: '0.4rem' }}>
+                No Organized Tournaments Found
+              </h3>
+              <p style={{ color: textMuted, fontSize: '0.86rem', maxWidth: '440px', margin: '0 auto 1.5rem', lineHeight: 1.5 }}>
+                {activeArbiter?.name ? `${activeArbiter.name}, you` : 'You'} do not have any tournaments in this view. Click below to launch your next official tournament!
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+                style={{
+                  padding: '0.7rem 1.5rem',
+                  borderRadius: '10px',
+                  background: '#10b981',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
+                }}
+              >
+                + Create New Tournament
+              </button>
+            </div>
+          ) : (
+            filteredSummaries.map((t) => {
             const isCurrentlySelected = t.id === workspace.activeTournamentId;
             const progressPct =
               t.totalRounds > 0 ? Math.round((t.currentRound / t.totalRounds) * 100) : 0;
@@ -642,7 +749,14 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      const cloned = cloneTournamentTemplate(workspace, t.id, `${t.name} (Copy)`);
+                      const cloned = cloneTournamentTemplate(
+                        workspace,
+                        t.id,
+                        `${t.name} (Copy)`,
+                        activeArbiter?.id,
+                        activeArbiter?.email,
+                        activeArbiter?.name
+                      );
                       onUpdateWorkspace(cloned);
                     }}
                     style={{
@@ -680,7 +794,7 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
                 </div>
               </div>
             );
-          })}
+          }))}
         </div>
 
         {/* ================================================================== */}

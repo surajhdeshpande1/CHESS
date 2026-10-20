@@ -13,6 +13,8 @@ export interface CloudTournamentSummary {
   time_control_name?: string;
   arbiter_id?: string;
   arbiter_name?: string;
+  organizer_id?: string;
+  organizer_email?: string;
   is_published?: boolean;
   is_archived?: boolean;
   updated_at: string;
@@ -66,6 +68,8 @@ export async function saveTournamentToCloud(
     time_control_name: t.timeControlName || null,
     arbiter_id: arbiter?.id || null,
     arbiter_name: arbiter ? `${arbiter.title} ${arbiter.name}` : null,
+    organizer_id: arbiter?.id || t.organizerId || null,
+    organizer_email: arbiter?.email || t.organizerEmail || null,
     vault_data: vault,
     is_published: true,
     is_archived: false,
@@ -131,17 +135,34 @@ export async function loadTournamentFromCloud(
 }
 
 /**
- * List all tournaments saved in Supabase
+ * List tournaments saved in Supabase (optionally filtered by organizer, or all for admin)
  */
-export async function listCloudTournaments(): Promise<CloudTournamentSummary[]> {
+export async function listCloudTournaments(
+  filterOrganizerId?: string | null,
+  filterOrganizerEmail?: string | null,
+  isAdmin: boolean = false
+): Promise<CloudTournamentSummary[]> {
   const client = getSupabaseClient();
   if (!client) return [];
 
   try {
-    const { data, error } = await client
+    let query = client
       .from('tournaments')
-      .select('id, name, city, status, current_round, total_rounds, players_count, time_control_name, arbiter_id, arbiter_name, is_published, is_archived, updated_at, created_at')
+      .select('id, name, city, status, current_round, total_rounds, players_count, time_control_name, arbiter_id, arbiter_name, organizer_id, organizer_email, is_published, is_archived, updated_at, created_at')
       .order('updated_at', { ascending: false });
+
+    // Filter by organizer unless superadmin view
+    if (!isAdmin && (filterOrganizerId || filterOrganizerEmail)) {
+      if (filterOrganizerId && filterOrganizerEmail) {
+        query = query.or(`organizer_id.eq.${filterOrganizerId},organizer_email.eq.${filterOrganizerEmail},arbiter_id.eq.${filterOrganizerId}`);
+      } else if (filterOrganizerId) {
+        query = query.or(`organizer_id.eq.${filterOrganizerId},arbiter_id.eq.${filterOrganizerId}`);
+      } else if (filterOrganizerEmail) {
+        query = query.eq('organizer_email', filterOrganizerEmail);
+      }
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Failed to list cloud tournaments:', error);

@@ -18,18 +18,26 @@ export interface TournamentSummaryCard {
   lastUpdatedISO: string;
   leaderName: string | null;
   leaderScore: number | null;
+  organizerId?: string;
+  organizerEmail?: string;
+  organizerName?: string;
+}
+
+export interface TournamentWorkspaceEntry {
+  createdAtISO: string;
+  lastUpdatedISO: string;
+  bakuAcceleration: boolean;
+  organizerId?: string;
+  organizerEmail?: string;
+  organizerName?: string;
+  vault: TournamentVault;
 }
 
 export interface OrganizerWorkspace {
   organizerName: string;
   organizationTitle: string;
   activeTournamentId: string;
-  tournamentsById: Record<string, {
-    createdAtISO: string;
-    lastUpdatedISO: string;
-    bakuAcceleration: boolean;
-    vault: TournamentVault;
-  }>;
+  tournamentsById: Record<string, TournamentWorkspaceEntry>;
 }
 
 export const WORKSPACE_STORAGE_KEY = 'FIDE_ORGANIZER_MULTI_TOURNEY_WORKSPACE_V2';
@@ -42,12 +50,18 @@ export function createBlankTournamentVault(
   maxPlayers = 200,
   maxRating: number | null = null,
   maxAge: number | null = null,
-  allowedGender: 'OPEN' | 'FEMALE_ONLY' = 'OPEN'
+  allowedGender: 'OPEN' | 'FEMALE_ONLY' = 'OPEN',
+  organizerId?: string,
+  organizerEmail?: string,
+  organizerName?: string
 ): TournamentVault {
   const initialState: TournamentState = {
     id,
     name,
     tournamentYear: new Date().getFullYear(),
+    organizerId,
+    organizerEmail,
+    organizerName,
     totalRounds,
     currentRound: 0,
     topSeedInitialColor: 'W',
@@ -129,9 +143,38 @@ export function initializeDefaultWorkspace(): OrganizerWorkspace {
 }
 
 export function getOrganizerTournamentSummaries(
-  workspace: OrganizerWorkspace
+  workspace: OrganizerWorkspace,
+  filterUserId?: string | null,
+  filterUserEmail?: string | null,
+  isAdmin: boolean = false
 ): TournamentSummaryCard[] {
   return Object.values(workspace.tournamentsById)
+    .filter((entry) => {
+      // Superadmin has all access to view every tournament across all organizers
+      if (isAdmin) return true;
+      // If no filter is specified, return all (backward compatibility)
+      if (!filterUserId && !filterUserEmail) return true;
+
+      const ownerId = entry.organizerId || entry.vault.currentState.organizerId;
+      const ownerEmail = entry.organizerEmail || entry.vault.currentState.organizerEmail;
+
+      if (filterUserId && ownerId && ownerId === filterUserId) return true;
+      if (
+        filterUserEmail &&
+        ownerEmail &&
+        ownerEmail.trim().toLowerCase() === filterUserEmail.trim().toLowerCase()
+      ) {
+        return true;
+      }
+
+      // If this tournament was the default initial template and has no owner yet,
+      // allow guest / single-user session to claim/view it
+      if (!ownerId && !ownerEmail && (!filterUserId || filterUserId === 'guest_organizer')) {
+        return true;
+      }
+
+      return false;
+    })
     .map((entry) => {
       const st = entry.vault.currentState;
       const sortedByScore = [...st.players].sort((a, b) => b.score - a.score || a.tpn - b.tpn);
@@ -151,6 +194,9 @@ export function getOrganizerTournamentSummaries(
         lastUpdatedISO: entry.lastUpdatedISO,
         leaderName: top ? `#${top.tpn} ${top.name}` : null,
         leaderScore: top ? top.score : null,
+        organizerId: entry.organizerId || st.organizerId,
+        organizerEmail: entry.organizerEmail || st.organizerEmail,
+        organizerName: entry.organizerName || st.organizerName,
       };
     })
     .sort((a, b) => b.lastUpdatedISO.localeCompare(a.lastUpdatedISO));
@@ -159,13 +205,20 @@ export function getOrganizerTournamentSummaries(
 export function cloneTournamentTemplate(
   workspace: OrganizerWorkspace,
   sourceTournamentId: string,
-  newName: string
+  newName: string,
+  organizerId?: string,
+  organizerEmail?: string,
+  organizerName?: string
 ): OrganizerWorkspace {
   const source = workspace.tournamentsById[sourceTournamentId];
   if (!source) return workspace;
 
   const newId = `tourney_${Date.now()}`;
   const srcState = source.vault.currentState;
+  const ownerId = organizerId || source.organizerId || srcState.organizerId;
+  const ownerEmail = organizerEmail || source.organizerEmail || srcState.organizerEmail;
+  const ownerName = organizerName || source.organizerName || srcState.organizerName;
+
   const clonedVault = createBlankTournamentVault(
     newId,
     newName,
@@ -174,7 +227,10 @@ export function cloneTournamentTemplate(
     srcState.rules.maxPlayers,
     srcState.rules.maxRating,
     srcState.rules.maxAge,
-    srcState.rules.allowedGender
+    srcState.rules.allowedGender,
+    ownerId,
+    ownerEmail,
+    ownerName
   );
 
   const now = new Date().toISOString();
@@ -187,6 +243,9 @@ export function cloneTournamentTemplate(
         createdAtISO: now,
         lastUpdatedISO: now,
         bakuAcceleration: source.bakuAcceleration,
+        organizerId: ownerId,
+        organizerEmail: ownerEmail,
+        organizerName: ownerName,
         vault: clonedVault,
       },
     },

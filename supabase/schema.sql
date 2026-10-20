@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS public.tournaments (
   time_control_name TEXT,
   arbiter_id TEXT,
   arbiter_name TEXT,
+  organizer_id TEXT,
+  organizer_email TEXT,
   vault_data JSONB NOT NULL, -- Triple-redundant vault: currentState, auditLogs, snapshots
   is_published BOOLEAN DEFAULT true,
   is_archived BOOLEAN DEFAULT false,
@@ -30,6 +32,8 @@ CREATE TABLE IF NOT EXISTS public.tournaments (
 
 -- Indexes for lightning-fast queries
 CREATE INDEX IF NOT EXISTS idx_tournaments_arbiter ON public.tournaments(arbiter_id);
+CREATE INDEX IF NOT EXISTS idx_tournaments_organizer_id ON public.tournaments(organizer_id);
+CREATE INDEX IF NOT EXISTS idx_tournaments_organizer_email ON public.tournaments(organizer_email);
 CREATE INDEX IF NOT EXISTS idx_tournaments_status ON public.tournaments(status);
 CREATE INDEX IF NOT EXISTS idx_tournaments_updated ON public.tournaments(updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_tournaments_published ON public.tournaments(is_published) WHERE is_published = true;

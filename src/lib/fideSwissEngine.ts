@@ -38,6 +38,8 @@ export interface EligibilityRules {
   maxAge: number | null;       // e.g., 15 for Under-15
   allowedGender: 'OPEN' | 'FEMALE_ONLY';
   allowedOrganizations: string[]; // Empty array = open to all clubs/colleges
+  hasAgeCategories?: boolean;
+  enabledAgeCategories?: string[]; // e.g. ['u9', 'u11', 'u13', 'u15', 'u17', 'u19', 'v50']
 }
 
 export interface PlayerRoundHistory {
@@ -106,6 +108,10 @@ export interface TournamentState {
   id: string;
   name: string;
   city?: string;
+  organizerId?: string;
+  organizerEmail?: string;
+  organizerName?: string;
+  agePrizeSettings?: any;
   roundDurationMinutes?: number;
   roundIncrementSeconds?: number;
   timeControlCategory?: 'CLASSICAL' | 'RAPID' | 'BLITZ' | 'CUSTOM';

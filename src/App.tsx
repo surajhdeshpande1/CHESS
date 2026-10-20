@@ -18,6 +18,7 @@ import { FindMyBoardModal } from './components/FindMyBoardModal';
 import { BulkCertificatesModal } from './components/BulkCertificatesModal';
 import { SupabaseSyncModal } from './components/SupabaseSyncModal';
 import { AdminCommandCenterModal } from './components/AdminCommandCenterModal';
+import { isAdminAuthenticated } from './lib/adminAuth';
 import { isSupabaseConfigured } from './lib/supabaseClient';
 import { saveTournamentToCloud } from './storage/supabaseSync';
 import {
@@ -25,6 +26,7 @@ import {
   WORKSPACE_STORAGE_KEY,
   initializeDefaultWorkspace,
   getOrganizerTournamentSummaries,
+  createBlankTournamentVault,
 } from './lib/organizerWorkspaceManager';
 import { OrganizerDashboardHub } from './components/OrganizerDashboardHub';
 
@@ -102,40 +104,99 @@ export const App: React.FC = () => {
     return defaultWs;
   });
 
-  const activeEntry =
-    workspace.tournamentsById[workspace.activeTournamentId] ||
-    Object.values(workspace.tournamentsById)[0] ||
-    workspace.tournamentsById['tourney_main_open_2026'];
+  const isAdmin = isAdminAuthenticated();
+
+  // Scoped tournaments for the current organizer (or all platform tournaments for superadmin)
+  const tournamentSummaries = useMemo(() => {
+    return getOrganizerTournamentSummaries(
+      workspace,
+      activeArbiter?.id,
+      activeArbiter?.email,
+      isAdmin
+    );
+  }, [workspace, activeArbiter, isAdmin]);
+
+  // Ensure active tournament strictly belongs to current organizer if not admin
+  const activeEntry = useMemo(() => {
+    if (isAdmin) {
+      return (
+        workspace.tournamentsById[workspace.activeTournamentId] ||
+        Object.values(workspace.tournamentsById)[0] ||
+        workspace.tournamentsById['tourney_main_open_2026']
+      );
+    }
+
+    if (activeArbiter) {
+      const currentActive = workspace.tournamentsById[workspace.activeTournamentId];
+      if (
+        currentActive &&
+        (currentActive.organizerId === activeArbiter.id ||
+          (currentActive.organizerEmail &&
+            currentActive.organizerEmail.toLowerCase() === activeArbiter.email.toLowerCase()))
+      ) {
+        return currentActive;
+      }
+
+      // If activeTournamentId doesn't belong to active user, find user's first tournament
+      const userTournament = Object.values(workspace.tournamentsById).find(
+        (entry) =>
+          entry.organizerId === activeArbiter.id ||
+          (entry.organizerEmail &&
+            entry.organizerEmail.toLowerCase() === activeArbiter.email.toLowerCase())
+      );
+      if (userTournament) {
+        return userTournament;
+      }
+    }
+
+    return (
+      workspace.tournamentsById[workspace.activeTournamentId] ||
+      Object.values(workspace.tournamentsById)[0] ||
+      workspace.tournamentsById['tourney_main_open_2026']
+    );
+  }, [workspace, activeArbiter, isAdmin]);
 
   const vault = activeEntry.vault;
   const tournament = vault.currentState;
 
   const setVault = (updater: TournamentVault | ((prev: TournamentVault) => TournamentVault)) => {
     setWorkspace((prevWs) => {
+      const currentTargetId = activeEntry?.vault?.currentState?.id || prevWs.activeTournamentId;
       const currentEntry =
-        prevWs.tournamentsById[prevWs.activeTournamentId] || Object.values(prevWs.tournamentsById)[0];
+        prevWs.tournamentsById[currentTargetId] || Object.values(prevWs.tournamentsById)[0];
       if (!currentEntry) return prevWs;
       const nextVault = typeof updater === 'function' ? updater(currentEntry.vault) : updater;
       const now = new Date().toISOString();
+      const ownerId = currentEntry.organizerId || activeArbiter?.id;
+      const ownerEmail = currentEntry.organizerEmail || activeArbiter?.email;
+      const ownerName = currentEntry.organizerName || activeArbiter?.name;
+
       return {
         ...prevWs,
+        activeTournamentId: currentTargetId,
         tournamentsById: {
           ...prevWs.tournamentsById,
-          [prevWs.activeTournamentId]: {
+          [currentTargetId]: {
             ...currentEntry,
             lastUpdatedISO: now,
             bakuAcceleration: Boolean(nextVault.currentState.bakuAcceleration ?? currentEntry.bakuAcceleration),
-            vault: nextVault,
+            organizerId: ownerId,
+            organizerEmail: ownerEmail,
+            organizerName: ownerName,
+            vault: {
+              ...nextVault,
+              currentState: {
+                ...nextVault.currentState,
+                organizerId: ownerId,
+                organizerEmail: ownerEmail,
+                organizerName: ownerName,
+              },
+            },
           },
         },
       };
     });
   };
-
-  const tournamentSummaries = useMemo(
-    () => getOrganizerTournamentSummaries(workspace),
-    [workspace]
-  );
 
   const handleSwitchTournament = (tourneyId: string) => {
     if (!workspace.tournamentsById[tourneyId]) return;
@@ -350,10 +411,15 @@ export const App: React.FC = () => {
     newRoundMinutes?: number,
     newIncrementSeconds?: number,
     newTimeControlCategory?: 'CLASSICAL' | 'RAPID' | 'BLITZ' | 'CUSTOM',
-    newTimeControlName?: string
+    newTimeControlName?: string,
+    newAgeSettings?: any
   ) => {
     const nextState: TournamentState = {
       ...tournament,
+      organizerId: activeArbiter?.id || tournament.organizerId,
+      organizerEmail: activeArbiter?.email || tournament.organizerEmail,
+      organizerName: activeArbiter?.name || tournament.organizerName,
+      agePrizeSettings: newAgeSettings !== undefined ? newAgeSettings : tournament.agePrizeSettings,
       rules: newRules,
       name: newName !== undefined ? newName : tournament.name,
       totalRounds: newRounds !== undefined ? newRounds : tournament.totalRounds,
@@ -716,27 +782,75 @@ export const App: React.FC = () => {
 
   // Dashboard Action 1: Create New Tournament
   const handleCreateNewFromDashboard = () => {
-    const initial = createInitialTournamentState();
-    const updatedVault = createAuditAndSnapshot(
-      vault,
-      initial,
-      'TOURNAMENT_CREATED',
-      'Initialized brand new empty tournament configuration from Arbiter Home Dashboard.',
-      arbiterActorName
+    const newId = `tourney_${Date.now()}`;
+    const initialVault = createBlankTournamentVault(
+      newId,
+      'Swiss Open Championship 2026',
+      5,
+      50,
+      200,
+      null,
+      null,
+      'OPEN',
+      activeArbiter?.id,
+      activeArbiter?.email,
+      activeArbiter?.name
     );
-    setVault(updatedVault);
+    const now = new Date().toISOString();
+    setWorkspace((prev) => ({
+      ...prev,
+      activeTournamentId: newId,
+      tournamentsById: {
+        ...prev.tournamentsById,
+        [newId]: {
+          createdAtISO: now,
+          lastUpdatedISO: now,
+          bakuAcceleration: false,
+          organizerId: activeArbiter?.id,
+          organizerEmail: activeArbiter?.email,
+          organizerName: activeArbiter?.name,
+          vault: initialVault,
+        },
+      },
+    }));
     navigateToStep('create_tournament');
     navigateToView('APP');
   };
 
   // Dashboard Action 2: Import Roster from Document
   const handleImportDocumentFromDashboard = () => {
-    if (!tournament.name) {
-      const nextState: TournamentState = {
-        ...tournament,
-        name: 'Open Chess Championship 2026',
-      };
-      setVault({ ...vault, currentState: nextState });
+    if (!tournament.name || tournament.organizerId !== activeArbiter?.id) {
+      const newId = `tourney_${Date.now()}`;
+      const initialVault = createBlankTournamentVault(
+        newId,
+        'Open Chess Championship 2026',
+        5,
+        50,
+        200,
+        null,
+        null,
+        'OPEN',
+        activeArbiter?.id,
+        activeArbiter?.email,
+        activeArbiter?.name
+      );
+      const now = new Date().toISOString();
+      setWorkspace((prev) => ({
+        ...prev,
+        activeTournamentId: newId,
+        tournamentsById: {
+          ...prev.tournamentsById,
+          [newId]: {
+            createdAtISO: now,
+            lastUpdatedISO: now,
+            bakuAcceleration: false,
+            organizerId: activeArbiter?.id,
+            organizerEmail: activeArbiter?.email,
+            organizerName: activeArbiter?.name,
+            vault: initialVault,
+          },
+        },
+      }));
     }
     navigateToStep('roster_entry');
     navigateToView('APP');
@@ -745,11 +859,15 @@ export const App: React.FC = () => {
   // Dashboard Action 3: Quick 64-Player GM Demo
   const handleLaunchDemoTournament = () => {
     const demoPlayers = get64DemoCandidates();
+    const demoId = `tourn-${Date.now()}`;
     const demoTournament: TournamentState = {
-      id: `tourn-${Date.now()}`,
+      id: demoId,
       name: 'Grandmaster FIDE Invitational 2026',
       city: 'Lausanne, Switzerland',
       tournamentYear: 2026,
+      organizerId: activeArbiter?.id,
+      organizerEmail: activeArbiter?.email,
+      organizerName: activeArbiter?.name,
       totalRounds: 7,
       currentRound: 1,
       topSeedInitialColor: 'W',
@@ -762,14 +880,39 @@ export const App: React.FC = () => {
       players: demoPlayers,
       rounds: [],
     };
-    const updatedVault = createAuditAndSnapshot(
-      vault,
-      demoTournament,
-      'TOURNAMENT_CREATED',
-      'Loaded 64-player Grandmaster Swiss tournament demo.',
-      arbiterActorName
-    );
-    setVault(updatedVault);
+    const demoVault: TournamentVault = {
+      currentState: demoTournament,
+      auditLogs: [
+        {
+          id: `log_${Date.now()}`,
+          sequenceNumber: 1,
+          timestampISO: new Date().toISOString(),
+          roundNumber: 0,
+          actionType: 'TOURNAMENT_CREATED',
+          actor: arbiterActorName,
+          summary: 'Loaded 64-player Grandmaster Swiss tournament demo.',
+          metadata: {},
+        },
+      ],
+      snapshots: [],
+    };
+    const now = new Date().toISOString();
+    setWorkspace((prev) => ({
+      ...prev,
+      activeTournamentId: demoId,
+      tournamentsById: {
+        ...prev.tournamentsById,
+        [demoId]: {
+          createdAtISO: now,
+          lastUpdatedISO: now,
+          bakuAcceleration: false,
+          organizerId: activeArbiter?.id,
+          organizerEmail: activeArbiter?.email,
+          organizerName: activeArbiter?.name,
+          vault: demoVault,
+        },
+      },
+    }));
     navigateToStep('roster_entry');
     navigateToView('APP');
   };
@@ -852,6 +995,9 @@ export const App: React.FC = () => {
         <HomeDashboardView
           activeArbiter={activeArbiter}
           tournament={tournament}
+          hasUserOrganizedTournament={tournamentSummaries.length > 0}
+          userTournamentsCount={tournamentSummaries.length}
+          isAdmin={isAdmin}
           onEnterActiveTournament={() => navigateToView('APP')}
           onCreateNewTournament={handleCreateNewFromDashboard}
           onLaunchDemoTournament={handleLaunchDemoTournament}
@@ -881,6 +1027,8 @@ export const App: React.FC = () => {
           onOpenTournament={handleSwitchTournament}
           isDarkTheme={true}
           onBackToApp={() => navigateToView('APP')}
+          activeArbiter={activeArbiter}
+          isAdmin={isAdmin}
         />
         {commonModals}
       </>
