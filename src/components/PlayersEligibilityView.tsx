@@ -79,6 +79,13 @@ export const PlayersEligibilityView: React.FC<PlayersEligibilityViewProps> = ({
     e.preventDefault();
     if (!name.trim()) return;
 
+    const trimmedFide = fideId.trim();
+    if (!trimmedFide) {
+      alert('FIDE ID is mandatory. Please enter a valid FIDE ID or select "Mark as Unranked".');
+      return;
+    }
+    const finalFideId = trimmedFide.toLowerCase() === 'unranked' ? 'Unranked' : trimmedFide;
+
     if (!validationPreview.eligible) {
       if (!window.confirm(`Warning: Candidate fails eligibility rules:\n${validationPreview.reasons.join('\n')}\nAdd anyway as arbiter override?`)) {
         return;
@@ -87,15 +94,16 @@ export const PlayersEligibilityView: React.FC<PlayersEligibilityViewProps> = ({
 
     onAddCandidate({
       name: name.trim(),
-      rating: parseInt(rating, 10) || 0,
+      rating: finalFideId === 'Unranked' && (parseInt(rating, 10) || 0) === 0 ? 0 : (parseInt(rating, 10) || 0),
       title,
       birthYear: parseInt(birthYear, 10) || 2000,
       gender,
       organization: organization.trim(),
-      fideId: fideId.trim() || undefined,
+      fideId: finalFideId,
     });
 
     setName('');
+    setFideId('');
     setShowAddModal(false);
   };
 
@@ -509,14 +517,40 @@ export const PlayersEligibilityView: React.FC<PlayersEligibilityViewProps> = ({
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                    FIDE ID (Optional)
-                  </label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                    <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      FIDE ID *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (fideId.toLowerCase() === 'unranked') {
+                          setFideId('');
+                        } else {
+                          setFideId('Unranked');
+                          if (!rating || rating === '0') setRating('');
+                        }
+                      }}
+                      style={{
+                        background: fideId.toLowerCase() === 'unranked' ? 'var(--navy-deep)' : 'var(--bg-secondary)',
+                        color: fideId.toLowerCase() === 'unranked' ? '#ffffff' : 'var(--navy-deep)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: '4px',
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        padding: '1px 6px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {fideId.toLowerCase() === 'unranked' ? '✓ Unranked' : 'Mark Unranked'}
+                    </button>
+                  </div>
                   <input
                     type="text"
+                    required
                     value={fideId}
                     onChange={(e) => setFideId(e.target.value)}
-                    placeholder="e.g. 1503014"
+                    placeholder="e.g. 1503014 (or click Mark Unranked)"
                     style={{
                       width: '100%',
                       background: 'var(--bg-secondary)',
@@ -526,6 +560,9 @@ export const PlayersEligibilityView: React.FC<PlayersEligibilityViewProps> = ({
                       color: 'var(--text-primary)',
                     }}
                   />
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.25rem' }}>
+                    Mandatory. If candidate has no FIDE ID, click <strong>Mark Unranked</strong>.
+                  </span>
                 </div>
               </div>
 

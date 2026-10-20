@@ -63,6 +63,7 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
   const [title, setTitle] = useState<FideTitle>('NONE');
   const [club, setClub] = useState('');
   const [fideId, setFideId] = useState('');
+  const [addError, setAddError] = useState<string | null>(null);
 
   const enrolledCount = tournament.players.length;
   const canStartRound1 = enrolledCount >= 2;
@@ -82,22 +83,35 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
   const stats = useMemo(() => {
     const rated = activeParsedList.filter((p) => p.rating > 0).length;
     const titled = activeParsedList.filter((p) => p.title !== 'NONE').length;
-    const withFide = activeParsedList.filter((p) => Boolean(p.fideId)).length;
+    const withFide = activeParsedList.filter((p) => Boolean(p.fideId && p.fideId.toLowerCase() !== 'unranked')).length;
     return { rated, titled, withFide };
   }, [activeParsedList]);
 
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    setAddError(null);
+    if (!name.trim()) {
+      setAddError('Player full name is required.');
+      return;
+    }
+
+    const trimmedFide = fideId.trim();
+    if (!trimmedFide) {
+      setAddError('FIDE ID is mandatory. Please enter a valid FIDE ID or click "Mark as Unranked".');
+      return;
+    }
+
+    const finalFideId = trimmedFide.toLowerCase() === 'unranked' ? 'Unranked' : trimmedFide;
+    const numRating = rating === '' ? 0 : Number(rating);
 
     onAddCandidate({
       name: name.trim(),
-      rating: rating === '' ? 0 : Number(rating),
+      rating: finalFideId === 'Unranked' && numRating === 0 ? 0 : numRating,
       title,
       birthYear: 2000,
       gender: ['WGM', 'WIM', 'WFM', 'WCM'].includes(title) ? 'F' : 'M',
       organization: club.trim() || 'Independent',
-      fideId: fideId.trim() || undefined,
+      fideId: finalFideId,
     });
 
     setName('');
@@ -105,6 +119,7 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
     setTitle('NONE');
     setClub('');
     setFideId('');
+    setAddError(null);
     setShowAddModal(false);
   };
 
@@ -378,7 +393,7 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
                       {p.rating > 0 ? (
                         <strong>{p.rating}</strong>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>Unrated</span>
+                        <span style={{ color: 'var(--text-muted)' }}>Unranked</span>
                       )}
                     </td>
                     <td style={{ padding: '0.65rem 0.75rem' }}>
@@ -390,8 +405,12 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
                         <span style={{ color: 'var(--text-light)' }}>—</span>
                       )}
                     </td>
-                    <td style={{ padding: '0.65rem 0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                      {p.fideId || '—'}
+                    <td style={{ padding: '0.65rem 0.75rem', fontFamily: 'var(--font-mono)' }}>
+                      {p.fideId && p.fideId.toLowerCase() !== 'unranked' ? (
+                        <span style={{ color: 'var(--navy-deep)', fontWeight: 600 }}>{p.fideId}</span>
+                      ) : (
+                        <span className="badge-minimal badge-muted" style={{ padding: '1px 6px', fontSize: '0.68rem' }}>Unranked</span>
+                      )}
                     </td>
                     <td style={{ padding: '0.65rem 0.75rem', color: 'var(--text-main)' }}>
                       {p.organization || 'Independent'}
@@ -479,18 +498,50 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.35rem' }}>
-                    FIDE ID (Optional)
-                  </label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--navy-deep)' }}>
+                      FIDE ID *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (fideId.toLowerCase() === 'unranked') {
+                          setFideId('');
+                        } else {
+                          setFideId('Unranked');
+                          if (!rating || rating === 0) setRating('');
+                        }
+                      }}
+                      style={{
+                        background: fideId.toLowerCase() === 'unranked' ? 'var(--navy-deep)' : 'var(--bg-secondary)',
+                        color: fideId.toLowerCase() === 'unranked' ? '#ffffff' : 'var(--navy-deep)',
+                        border: '1px solid var(--navy-border-light)',
+                        borderRadius: '4px',
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        padding: '1px 6px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {fideId.toLowerCase() === 'unranked' ? '✓ Unranked' : 'Mark Unranked'}
+                    </button>
+                  </div>
                   <input
                     type="text"
-                    placeholder="e.g. 1503018"
+                    required
+                    placeholder="e.g. 1503018 (or click Mark Unranked)"
                     value={fideId}
                     onChange={(e) => setFideId(e.target.value)}
-                    style={{ width: '100%' }}
+                    style={{
+                      width: '100%',
+                      borderColor: addError && !fideId.trim() ? '#dc2626' : undefined,
+                    }}
                   />
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.25rem' }}>
+                    Mandatory. If player has no FIDE ID, click <strong>Mark Unranked</strong>.
+                  </span>
                 </div>
 
                 <div>
@@ -506,6 +557,12 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
                   />
                 </div>
               </div>
+
+              {addError && (
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem', marginBottom: '1rem' }}>
+                  ⚠ {addError}
+                </div>
+              )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
                 <button type="button" onClick={() => setShowAddModal(false)} className="btn btn-secondary-white">
@@ -759,8 +816,12 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
                                 '—'
                               )}
                             </td>
-                            <td style={{ padding: '0.4rem 0.6rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                              {p.fideId || '—'}
+                            <td style={{ padding: '0.4rem 0.6rem', fontFamily: 'var(--font-mono)' }}>
+                              {p.fideId && p.fideId.toLowerCase() !== 'unranked' ? (
+                                p.fideId
+                              ) : (
+                                <span className="badge-minimal badge-muted" style={{ fontSize: '0.65rem' }}>Unranked</span>
+                              )}
                             </td>
                             <td style={{ padding: '0.4rem 0.6rem', color: 'var(--text-muted)' }}>
                               {p.organization}

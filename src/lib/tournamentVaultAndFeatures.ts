@@ -204,6 +204,7 @@ export function detectDuplicateOrInvalidCandidate(
     if (
       newCandidate.fideId &&
       existing.fideId &&
+      newCandidate.fideId.trim().toLowerCase() !== 'unranked' &&
       newCandidate.fideId.trim() === existing.fideId.trim()
     ) {
       hasError = true;

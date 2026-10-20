@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowRight, Search, Trophy, TrendingUp, TrendingDown } from 'lucide-react';
-import { TournamentState } from '../lib/fideSwissEngine';
+import { ArrowRight, Search, Trophy, TrendingUp, TrendingDown, Eye } from 'lucide-react';
+import { CandidatePlayer, TournamentState } from '../lib/fideSwissEngine';
+import { PlayerMatchDetailsModal } from './PlayerMatchDetailsModal';
 
 interface LiveStandingsViewProps {
   tournament: TournamentState;
@@ -14,6 +15,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
   onProceedToNextRound,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPlayer, setSelectedPlayer] = useState<CandidatePlayer | null>(null);
 
   const sortedPlayers = [...tournament.players].sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
@@ -33,7 +35,8 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
   const filteredPlayers = sortedPlayers.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.organization.toLowerCase().includes(searchTerm.toLowerCase())
+      p.organization.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.fideId && p.fideId.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -70,7 +73,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
             Championship Standings & FIDE Rating Performance
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', fontFamily: 'var(--font-sans)', marginTop: '0.2rem' }}>
-            Live calculations: Buchholz Cut-1, Buchholz Total, Sonneborn-Berger, OTB Wins, and Live FIDE Rating Change (ΔR).
+            Click on any player to inspect who they played against, piece colors, and board-by-board outcomes.
           </p>
         </div>
 
@@ -88,7 +91,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
             />
             <input
               type="text"
-              placeholder="Filter players..."
+              placeholder="Search player or FIDE ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{ width: '100%', paddingLeft: '2rem', paddingRight: '0.75rem', fontSize: '0.8rem' }}
@@ -99,26 +102,47 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
             <button
               type="button"
               onClick={onProceedToNextRound}
-              className="btn btn-primary-navy"
+              className="btn btn-primary-green"
               style={{ fontSize: '0.82rem', padding: '0.45rem 1rem' }}
             >
-              <span>Back to Live Pairings</span>
-              <ArrowRight size={13} />
+              <span>Next Round Matches</span>
+              <ArrowRight size={14} />
             </button>
           )}
         </div>
       </div>
 
-      {/* Main High-Precision Standings Table */}
-      <div className="card-clean table-responsive-container" style={{ padding: '0.35rem' }}>
+      {/* Helpful Hint banner */}
+      <div
+        style={{
+          background: 'rgba(30, 58, 138, 0.05)',
+          border: '1px solid rgba(30, 58, 138, 0.15)',
+          borderRadius: '8px',
+          padding: '0.5rem 0.85rem',
+          fontSize: '0.78rem',
+          color: 'var(--navy-royal)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '1rem',
+        }}
+      >
+        <span style={{ fontSize: '1rem' }}>💡</span>
+        <span>
+          <strong>Interactive Player Dossiers:</strong> Tap or click any player row below to reveal their full match breakdown — including opponent seeds, FIDE IDs, piece colors, game scores, and tie-break details.
+        </span>
+      </div>
+
+      {/* Official Standings Table with Sticky Column */}
+      <div className="card-clean" style={{ padding: '0.35rem', overflowX: 'auto' }}>
         <table className="table-minimal">
           <thead>
             <tr>
               <th className="table-sticky-col-rank" style={{ width: '45px', textAlign: 'center' }}>Rk</th>
               <th style={{ width: '45px' }}>#</th>
-              <th className="table-sticky-col-name">Candidate Player</th>
+              <th className="table-sticky-col-name">Candidate Player & FIDE ID</th>
               <th style={{ width: '60px' }}>Title</th>
-              <th style={{ width: '75px', textAlign: 'right' }}>FIDE Elo</th>
+              <th style={{ width: '80px', textAlign: 'right' }}>FIDE Elo</th>
               <th style={{ width: '65px', textAlign: 'center' }}>Pts</th>
               <th style={{ width: '75px', textAlign: 'right' }}>BH-C1</th>
               <th style={{ width: '75px', textAlign: 'right' }}>BH-Tot</th>
@@ -126,6 +150,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
               <th style={{ width: '55px', textAlign: 'center' }}>Wins</th>
               <th style={{ width: '85px', textAlign: 'right' }}>Perf (Rp)</th>
               <th style={{ width: '80px', textAlign: 'right' }}>ΔR (Elo)</th>
+              <th style={{ width: '70px', textAlign: 'center' }}>Details</th>
             </tr>
           </thead>
           <tbody>
@@ -136,9 +161,22 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
               const ratingDelta = player.fideRatingChange ?? 0;
               const hasGain = ratingDelta > 0;
               const hasLoss = ratingDelta < 0;
+              const fideDisplay = player.fideId && player.fideId.toLowerCase() !== 'unranked'
+                ? player.fideId
+                : 'Unranked';
 
               return (
-                <tr key={player.id} style={{ background: isLeader ? 'var(--green-tint)' : 'transparent' }}>
+                <tr
+                  key={player.id}
+                  onClick={() => setSelectedPlayer(player)}
+                  style={{
+                    background: isLeader ? 'var(--green-tint)' : 'transparent',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s ease',
+                  }}
+                  className="hover-highlight"
+                  title={`Click to view ${player.name}'s complete match history`}
+                >
                   <td
                     className="table-sticky-col-rank"
                     style={{
@@ -154,14 +192,22 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
                     #{player.tpn}
                   </td>
                   <td className="table-sticky-col-name">
-                    <div style={{ fontWeight: 600, color: 'var(--navy-deep)' }}>
-                      {player.name}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontWeight: 700, color: 'var(--navy-deep)' }}>
+                        {player.name}
+                      </span>
                     </div>
-                    {player.organization && (
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        {player.organization}
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px', flexWrap: 'wrap' }}>
+                      {player.organization && <span>{player.organization}</span>}
+                      <span>•</span>
+                      <span>
+                        FIDE ID: {fideDisplay === 'Unranked' ? (
+                          <span className="badge-minimal badge-muted" style={{ padding: '0 4px', fontSize: '0.62rem' }}>Unranked</span>
+                        ) : (
+                          <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--navy-deep)' }}>{fideDisplay}</strong>
+                        )}
+                      </span>
+                    </div>
                   </td>
                   <td>
                     {player.title !== 'NONE' ? (
@@ -171,7 +217,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
                     )}
                   </td>
                   <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                    {player.rating || 'Unrated'}
+                    {player.rating > 0 ? player.rating : <span style={{ color: 'var(--text-muted)' }}>Unranked</span>}
                   </td>
                   <td
                     style={{
@@ -214,12 +260,37 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
                       </span>
                     )}
                   </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span
+                      style={{
+                        background: 'var(--bg-secondary)',
+                        color: 'var(--navy-royal)',
+                        border: '1px solid var(--navy-border-light)',
+                        borderRadius: '4px',
+                        padding: '2px 6px',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        display: 'inline-block',
+                      }}
+                    >
+                      Dossier ↗
+                    </span>
+                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
+
+      {/* Interactive Match Details Modal */}
+      <PlayerMatchDetailsModal
+        isOpen={selectedPlayer !== null}
+        onClose={() => setSelectedPlayer(null)}
+        player={selectedPlayer}
+        tournament={tournament}
+        onSelectAnotherPlayer={(another) => setSelectedPlayer(another)}
+      />
     </div>
   );
 };

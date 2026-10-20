@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Download, Printer, RotateCcw } from 'lucide-react';
-import { TournamentState } from '../lib/fideSwissEngine';
+import { CandidatePlayer, TournamentState } from '../lib/fideSwissEngine';
+import { PlayerMatchDetailsModal } from './PlayerMatchDetailsModal';
 
 interface Step5CompletedPodiumProps {
   tournament: TournamentState;
   onExportTRF: () => void;
   onOpenPrint: () => void;
-  onOpenPrizes: () => void;
-  onOpenCertificates: () => void;
+  onOpenPrizes?: () => void;
+  onOpenCertificates?: () => void;
   onRestartNewTournament: () => void;
 }
 
@@ -17,6 +18,8 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
   onOpenPrint,
   onRestartNewTournament,
 }) => {
+  const [selectedPlayer, setSelectedPlayer] = useState<CandidatePlayer | null>(null);
+
   const sortedPlayers = [...tournament.players].sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     if (b.tieBreaks.directEncounter !== a.tieBreaks.directEncounter)
@@ -72,11 +75,11 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
           {tournament.name || 'Swiss Championship'}
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem', maxWidth: '580px', margin: '0 auto 1.25rem' }}>
-          All {tournament.totalRounds} rounds completed under FIDE Dutch C.04.3 rules. Standings calculated using Handbook C.07 tie-breaks.
+          All {tournament.totalRounds} rounds completed under FIDE Dutch C.04.3 rules. Standings calculated using Handbook C.07 tie-breaks. Click any player to inspect their full match record.
         </p>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.65rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={onOpenPrint}
@@ -100,8 +103,9 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
           <button
             type="button"
             onClick={onRestartNewTournament}
-            className="btn btn-minimal"
-            style={{ fontSize: '0.82rem', padding: '0.45rem 1rem' }}
+            className="btn btn-secondary-white"
+            style={{ fontSize: '0.82rem', padding: '0.45rem 1rem', color: '#dc2626' }}
+            title="Reset tournament vault for next championship"
           >
             <RotateCcw size={13} />
             <span>New Tournament</span>
@@ -109,26 +113,29 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
         </div>
       </div>
 
-      {/* Classical 3-Tier Podium (Fitted for 100% Zoom & Stacks on Mobile) */}
+      {/* Podium Cards: 2nd, 1st, 3rd (Olympic Order) */}
       <div
-        className="podium-container"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
           gap: '1rem',
-          alignItems: 'end',
-          marginBottom: '2rem',
+          alignItems: 'flex-end',
+          maxWidth: '880px',
+          margin: '0 auto 2rem',
         }}
       >
         {/* Runner-Up (2nd Place) */}
         {runnerUp && (
           <div
-            className="card-clean podium-runnerup-card"
+            className="card-clean podium-runnerup-card hover-highlight"
+            onClick={() => setSelectedPlayer(runnerUp)}
             style={{
               padding: '1.25rem 1rem',
               textAlign: 'center',
               borderTop: '3.5px solid var(--navy-border)',
+              cursor: 'pointer',
             }}
+            title="Click to view 2nd Place match history"
           >
             <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
               🥈 Runner-Up • 2nd Place
@@ -146,20 +153,26 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
               BH: {runnerUp.tieBreaks.buchholzCut1.toFixed(1)} | SB: {runnerUp.tieBreaks.sonnebornBerger.toFixed(1)}
               {runnerUp.performanceRating && ` | Rp: ${runnerUp.performanceRating}`}
             </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--navy-royal)', marginTop: '0.5rem', fontWeight: 700 }}>
+              View Matches ↗
+            </div>
           </div>
         )}
 
         {/* Champion (1st Place) */}
         {champion && (
           <div
-            className="card-clean podium-champ-card"
+            className="card-clean podium-champ-card hover-highlight"
+            onClick={() => setSelectedPlayer(champion)}
             style={{
               padding: '1.75rem 1.25rem',
               textAlign: 'center',
               borderTop: '4px solid var(--green-primary)',
               background: 'linear-gradient(180deg, var(--green-tint) 0%, #ffffff 40%)',
               boxShadow: '0 8px 18px -4px rgba(10, 25, 47, 0.08)',
+              cursor: 'pointer',
             }}
+            title="Click to view Champion match history"
           >
             <div
               style={{
@@ -193,18 +206,24 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
               BH: {champion.tieBreaks.buchholzCut1.toFixed(1)} | SB: {champion.tieBreaks.sonnebornBerger.toFixed(1)}
               {champion.performanceRating && ` | Rp: ${champion.performanceRating}`}
             </div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--green-deep)', marginTop: '0.5rem', fontWeight: 800 }}>
+              View Champion Matches ↗
+            </div>
           </div>
         )}
 
         {/* 3rd Place */}
         {thirdPlace && (
           <div
-            className="card-clean podium-third-card"
+            className="card-clean podium-third-card hover-highlight"
+            onClick={() => setSelectedPlayer(thirdPlace)}
             style={{
               padding: '1.25rem 1rem',
               textAlign: 'center',
               borderTop: '3.5px solid var(--navy-border-light)',
+              cursor: 'pointer',
             }}
+            title="Click to view 3rd Place match history"
           >
             <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
               🥉 3rd Place
@@ -222,6 +241,9 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
               BH: {thirdPlace.tieBreaks.buchholzCut1.toFixed(1)} | SB: {thirdPlace.tieBreaks.sonnebornBerger.toFixed(1)}
               {thirdPlace.performanceRating && ` | Rp: ${thirdPlace.performanceRating}`}
             </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--navy-royal)', marginTop: '0.5rem', fontWeight: 700 }}>
+              View Matches ↗
+            </div>
           </div>
         )}
       </div>
@@ -233,9 +255,9 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
             <tr>
               <th style={{ width: '45px', textAlign: 'center' }}>Rk</th>
               <th style={{ width: '45px' }}>#</th>
-              <th>Candidate Player</th>
+              <th>Candidate Player & FIDE ID</th>
               <th style={{ width: '60px' }}>Title</th>
-              <th style={{ width: '75px', textAlign: 'right' }}>FIDE Elo</th>
+              <th style={{ width: '80px', textAlign: 'right' }}>FIDE Elo</th>
               <th style={{ width: '70px', textAlign: 'center' }}>Final Pts</th>
               <th style={{ width: '75px', textAlign: 'right' }}>BH-C1</th>
               <th style={{ width: '75px', textAlign: 'right' }}>BH-Tot</th>
@@ -243,6 +265,7 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
               <th style={{ width: '55px', textAlign: 'center' }}>Wins</th>
               <th style={{ width: '85px', textAlign: 'right' }}>Perf (Rp)</th>
               <th style={{ width: '80px', textAlign: 'right' }}>ΔR (Elo)</th>
+              <th style={{ width: '70px', textAlign: 'center' }}>Details</th>
             </tr>
           </thead>
           <tbody>
@@ -252,9 +275,22 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
               const ratingDelta = player.fideRatingChange ?? 0;
               const hasGain = ratingDelta > 0;
               const hasLoss = ratingDelta < 0;
+              const fideDisplay = player.fideId && player.fideId.toLowerCase() !== 'unranked'
+                ? player.fideId
+                : 'Unranked';
 
               return (
-                <tr key={player.id} style={{ background: isPodium ? 'var(--green-tint)' : 'transparent' }}>
+                <tr
+                  key={player.id}
+                  onClick={() => setSelectedPlayer(player)}
+                  style={{
+                    background: isPodium ? 'var(--green-tint)' : 'transparent',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s ease',
+                  }}
+                  className="hover-highlight"
+                  title={`Click to view ${player.name}'s complete match history`}
+                >
                   <td
                     style={{
                       textAlign: 'center',
@@ -272,6 +308,17 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
                     <div style={{ fontWeight: 600, color: 'var(--navy-deep)' }}>
                       {player.name}
                     </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px', flexWrap: 'wrap' }}>
+                      {player.organization && <span>{player.organization}</span>}
+                      <span>•</span>
+                      <span>
+                        FIDE ID: {fideDisplay === 'Unranked' ? (
+                          <span className="badge-minimal badge-muted" style={{ padding: '0 4px', fontSize: '0.62rem' }}>Unranked</span>
+                        ) : (
+                          <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--navy-deep)' }}>{fideDisplay}</strong>
+                        )}
+                      </span>
+                    </div>
                   </td>
                   <td>
                     {player.title !== 'NONE' ? (
@@ -281,7 +328,7 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
                     )}
                   </td>
                   <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                    {player.rating || 'Unrated'}
+                    {player.rating > 0 ? player.rating : <span style={{ color: 'var(--text-muted)' }}>Unranked</span>}
                   </td>
                   <td
                     style={{
@@ -324,12 +371,37 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
                       </span>
                     )}
                   </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span
+                      style={{
+                        background: 'var(--bg-secondary)',
+                        color: 'var(--navy-royal)',
+                        border: '1px solid var(--navy-border-light)',
+                        borderRadius: '4px',
+                        padding: '2px 6px',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        display: 'inline-block',
+                      }}
+                    >
+                      Dossier ↗
+                    </span>
+                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
+
+      {/* Interactive Match Details Modal */}
+      <PlayerMatchDetailsModal
+        isOpen={selectedPlayer !== null}
+        onClose={() => setSelectedPlayer(null)}
+        player={selectedPlayer}
+        tournament={tournament}
+        onSelectAnotherPlayer={(another) => setSelectedPlayer(another)}
+      />
     </div>
   );
 };
