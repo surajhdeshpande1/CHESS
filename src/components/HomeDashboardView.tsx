@@ -64,28 +64,30 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
           style={{
             maxWidth: '1280px',
             margin: '0 auto',
-            padding: '0.85rem 1.5rem',
+            padding: '0.75rem 1rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '1rem',
+            gap: '0.75rem',
+            flexWrap: 'wrap',
           }}
         >
           {/* Brand Crest */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
             <div
               style={{
-                width: '36px',
-                height: '36px',
+                width: '34px',
+                height: '34px',
                 borderRadius: '8px',
                 background: 'var(--navy-deep)',
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '1.25rem',
+                fontSize: '1.2rem',
                 fontWeight: 800,
                 boxShadow: '0 2px 4px rgba(10, 25, 47, 0.12)',
+                flexShrink: 0,
               }}
             >
               ♔
@@ -94,45 +96,41 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
               <div
                 style={{
                   fontFamily: 'var(--font-heading)',
-                  fontSize: '1.05rem',
+                  fontSize: '0.98rem',
                   fontWeight: 900,
                   color: 'var(--navy-deep)',
                   letterSpacing: '0.04em',
                   lineHeight: 1.1,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 ROYAL SWISS
               </div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                 FIDE Dutch Pairing & Tournament Suite
               </div>
             </div>
           </div>
 
           {/* Arbiter Session & Sign Out */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
             {activeArbiter && (
               <div
+                className="hide-on-mobile"
                 style={{
-                  display: 'flex',
                   alignItems: 'center',
                   gap: '0.45rem',
-                  padding: '0.35rem 0.75rem',
+                  padding: '0.3rem 0.65rem',
                   borderRadius: '20px',
                   background: 'var(--bg-secondary)',
                   border: '1px solid var(--navy-border-light)',
-                  fontSize: '0.76rem',
+                  fontSize: '0.74rem',
                 }}
               >
-                <span className="badge-minimal badge-navy" style={{ fontSize: '0.66rem' }}>
+                <span className="badge-minimal badge-navy" style={{ fontSize: '0.64rem' }}>
                   {activeArbiter.title ? activeArbiter.title.replace(/_/g, ' ') : 'ARBITER'}
                 </span>
                 <strong style={{ color: 'var(--navy-deep)' }}>{activeArbiter.name}</strong>
-                {activeArbiter.fideId && (
-                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                    #{activeArbiter.fideId}
-                  </span>
-                )}
               </div>
             )}
 
@@ -142,16 +140,17 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
                 onClick={onOpenCloudSync}
                 className="btn btn-secondary-white"
                 style={{
-                  fontSize: '0.76rem',
-                  padding: '0.4rem 0.75rem',
+                  fontSize: '0.74rem',
+                  padding: '0.35rem 0.65rem',
                   color: isSupabaseConfigured() ? 'var(--green-deep)' : 'var(--navy-deep)',
                   borderColor: isSupabaseConfigured() ? 'var(--green-border)' : 'var(--navy-border-light)',
                   background: isSupabaseConfigured() ? 'var(--green-tint)' : '#ffffff',
+                  minHeight: '34px',
                 }}
                 title="Supabase Cloud Database & Live Spectator Sync"
               >
-                <Database size={13} color={isSupabaseConfigured() ? 'var(--green-primary)' : 'var(--navy-royal)'} />
-                <span>{isSupabaseConfigured() ? 'Cloud Live' : 'Cloud Sync'}</span>
+                <Database size={12} color={isSupabaseConfigured() ? 'var(--green-primary)' : 'var(--navy-royal)'} />
+                <span>{isSupabaseConfigured() ? 'Live' : 'Cloud'}</span>
               </button>
             )}
 
@@ -159,31 +158,31 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
               type="button"
               onClick={onSignOut}
               className="btn btn-secondary-white"
-              style={{ fontSize: '0.76rem', padding: '0.4rem 0.75rem' }}
+              style={{ fontSize: '0.74rem', padding: '0.35rem 0.65rem', minHeight: '34px' }}
               title="Sign Out"
             >
-              <LogOut size={13} />
-              <span>Sign Out</span>
+              <LogOut size={12} />
+              <span>Exit</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Home Hub Content */}
-      <main style={{ flex: 1, maxWidth: '1180px', width: '100%', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
+      <main style={{ flex: 1, maxWidth: '1180px', width: '100%', margin: '0 auto', padding: '1.5rem 1rem' }}>
         {/* Welcome Banner */}
-        <div style={{ marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+        <div style={{ marginBottom: '1.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
             <span className="badge-minimal badge-green">
-              ● FIDE DUTCH ALGORITHM C.04.3 CERTIFIED
+              ● FIDE DUTCH C.04.3 CERTIFIED
             </span>
             <span className="badge-minimal badge-muted">
-              OFFLINE READY & ENCRYPTED VAULT
+              OFFLINE ENCRYPTED VAULT
             </span>
           </div>
           <h1
             style={{
-              fontSize: '2.1rem',
+              fontSize: 'clamp(1.5rem, 5vw, 2.2rem)',
               fontWeight: 900,
               color: 'var(--navy-deep)',
               fontFamily: 'var(--font-heading)',
@@ -193,7 +192,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
           >
             Welcome, {arbiterDisplayName}
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.94rem', maxWidth: '680px' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', maxWidth: '680px', lineHeight: 1.5 }}>
             Tournament Director & Chief Arbiter Control Center. Create a fresh Swiss tournament, import players from an Excel or Word file on your device, or resume your active tournament.
           </p>
         </div>
@@ -280,8 +279,8 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '1.25rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+            gap: '1rem',
             marginBottom: '2.5rem',
           }}
         >

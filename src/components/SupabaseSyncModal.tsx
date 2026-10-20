@@ -199,31 +199,27 @@ END $$;`;
 
   return (
     <div
+      className="modal-overlay"
       style={{
-        position: 'fixed',
-        inset: 0,
         zIndex: 9999,
         background: 'rgba(10, 25, 47, 0.65)',
         backdropFilter: 'blur(6px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
       }}
       onClick={onClose}
     >
       <div
-        className="card-clean"
+        className="modal-content card-clean"
         style={{
           width: '100%',
           maxWidth: '680px',
-          maxHeight: '90vh',
+          maxHeight: '92vh',
           background: '#ffffff',
           borderRadius: '12px',
           boxShadow: '0 25px 50px -12px rgba(10, 25, 47, 0.25)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
+          padding: 0,
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -274,12 +270,13 @@ END $$;`;
 
         {/* Tab Navigation */}
         <div
+          className="mobile-touch-scroll"
           style={{
-            display: 'flex',
             borderBottom: '1px solid var(--navy-border-light)',
             background: '#ffffff',
-            padding: '0 1.5rem',
-            gap: '1rem',
+            padding: '0 1rem',
+            gap: '0.85rem',
+            width: '100%',
           }}
         >
           <button

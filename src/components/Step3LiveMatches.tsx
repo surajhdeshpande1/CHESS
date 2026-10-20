@@ -343,8 +343,39 @@ export const Step3LiveMatches: React.FC<Step3LiveMatchesProps> = ({
                   transition: 'all 0.18s ease',
                 }}
               >
-                {/* Board Number */}
-                <div style={{ textAlign: 'center' }}>
+                {/* Mobile Header Bar: Board # + Score Badge + X-Ray */}
+                <div className="show-on-mobile pairing-board-mobile-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                    <span className="badge-minimal badge-navy" style={{ fontWeight: 800 }}>
+                      BOARD {b.boardNumber}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.76rem',
+                        fontWeight: 900,
+                        fontFamily: 'var(--font-mono)',
+                        color: isWhiteWin || isBlackWin ? 'var(--green-deep)' : isDraw ? 'var(--navy-royal)' : 'var(--text-muted)',
+                      }}
+                    >
+                      {isPending ? 'Pending' : isWhiteWin ? '1 – 0 (White Win)' : isBlackWin ? '0 – 1 (Black Win)' : '½ – ½ (Draw)'}
+                    </span>
+                  </div>
+                  {onExplainBoard && (
+                    <button
+                      type="button"
+                      onClick={() => onExplainBoard(b)}
+                      className="btn btn-secondary-white"
+                      style={{ fontSize: '0.68rem', padding: '0.2rem 0.5rem', minHeight: '28px', gap: '0.25rem' }}
+                      title="Pairing X-Ray"
+                    >
+                      <Sparkles size={11} color="var(--navy-royal)" />
+                      <span>X-Ray</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Desktop Board Number (Hidden on Mobile) */}
+                <div className="hide-on-mobile" style={{ textAlign: 'center', flexDirection: 'column' }}>
                   <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', display: 'block', fontWeight: 800, letterSpacing: '0.04em' }}>
                     BD
                   </span>
@@ -670,8 +701,8 @@ export const Step3LiveMatches: React.FC<Step3LiveMatchesProps> = ({
                   </div>
                 </div>
 
-                {/* X-Ray / Explain Action */}
-                <div style={{ textAlign: 'center' }}>
+                {/* Desktop X-Ray / Explain Action (Hidden on Mobile) */}
+                <div className="hide-on-mobile" style={{ textAlign: 'center' }}>
                   {onExplainBoard && (
                     <button
                       type="button"

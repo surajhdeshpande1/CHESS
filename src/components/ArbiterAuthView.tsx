@@ -124,7 +124,7 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
         style={{
           maxWidth: '560px',
           width: '100%',
-          padding: '2.5rem',
+          padding: 'clamp(1.25rem, 5vw, 2.5rem)',
           position: 'relative',
           background: '#ffffff',
           boxShadow: '0 20px 40px -15px rgba(10, 25, 47, 0.08)',

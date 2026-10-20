@@ -109,8 +109,9 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
         </div>
       </div>
 
-      {/* Classical 3-Tier Podium (Fitted for 100% Zoom) */}
+      {/* Classical 3-Tier Podium (Fitted for 100% Zoom & Stacks on Mobile) */}
       <div
+        className="podium-container"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
@@ -122,7 +123,7 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
         {/* Runner-Up (2nd Place) */}
         {runnerUp && (
           <div
-            className="card-clean"
+            className="card-clean podium-runnerup-card"
             style={{
               padding: '1.25rem 1rem',
               textAlign: 'center',
@@ -130,7 +131,7 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
             }}
           >
             <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
-              Runner-Up • 2nd Place
+              🥈 Runner-Up • 2nd Place
             </div>
             <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--navy-deep)', marginBottom: '0.2rem' }}>
               {runnerUp.name}
@@ -151,7 +152,7 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
         {/* Champion (1st Place) */}
         {champion && (
           <div
-            className="card-clean"
+            className="card-clean podium-champ-card"
             style={{
               padding: '1.75rem 1.25rem',
               textAlign: 'center',
@@ -177,7 +178,7 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
               ♔
             </div>
             <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--green-deep)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-              Tournament Champion
+              🥇 Tournament Champion
             </div>
             <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--navy-deep)', marginBottom: '0.2rem' }}>
               {champion.name}
@@ -198,7 +199,7 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
         {/* 3rd Place */}
         {thirdPlace && (
           <div
-            className="card-clean"
+            className="card-clean podium-third-card"
             style={{
               padding: '1.25rem 1rem',
               textAlign: 'center',
@@ -206,7 +207,7 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
             }}
           >
             <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
-              3rd Place
+              🥉 3rd Place
             </div>
             <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--navy-deep)', marginBottom: '0.2rem' }}>
               {thirdPlace.name}

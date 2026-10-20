@@ -110,13 +110,13 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
       </div>
 
       {/* Main High-Precision Standings Table */}
-      <div className="card-clean" style={{ padding: '0.35rem', overflowX: 'auto' }}>
+      <div className="card-clean table-responsive-container" style={{ padding: '0.35rem' }}>
         <table className="table-minimal">
           <thead>
             <tr>
-              <th style={{ width: '45px', textAlign: 'center' }}>Rk</th>
+              <th className="table-sticky-col-rank" style={{ width: '45px', textAlign: 'center' }}>Rk</th>
               <th style={{ width: '45px' }}>#</th>
-              <th>Candidate Player</th>
+              <th className="table-sticky-col-name">Candidate Player</th>
               <th style={{ width: '60px' }}>Title</th>
               <th style={{ width: '75px', textAlign: 'right' }}>FIDE Elo</th>
               <th style={{ width: '65px', textAlign: 'center' }}>Pts</th>
@@ -140,6 +140,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
               return (
                 <tr key={player.id} style={{ background: isLeader ? 'var(--green-tint)' : 'transparent' }}>
                   <td
+                    className="table-sticky-col-rank"
                     style={{
                       textAlign: 'center',
                       fontWeight: 800,
@@ -152,7 +153,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
                   <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
                     #{player.tpn}
                   </td>
-                  <td>
+                  <td className="table-sticky-col-name">
                     <div style={{ fontWeight: 600, color: 'var(--navy-deep)' }}>
                       {player.name}
                     </div>

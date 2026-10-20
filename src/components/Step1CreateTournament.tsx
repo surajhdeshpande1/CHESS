@@ -253,7 +253,7 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
         </div>
 
         {/* City / Venue & Swiss Rounds */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.75rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '1rem', marginBottom: '1.75rem' }}>
           <div>
             <label
               style={{
@@ -370,7 +370,7 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
           </div>
 
           {/* Detailed Inputs: Base Minutes & Increment Seconds */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', alignItems: 'flex-end' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '0.85rem', alignItems: 'flex-end' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
                 Base Time (Minutes) *
@@ -477,7 +477,7 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--navy-border-light)',
                 display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
                 gap: '1rem',
               }}
             >

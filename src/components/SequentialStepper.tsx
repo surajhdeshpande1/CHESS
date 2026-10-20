@@ -95,15 +95,16 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
         zIndex: 50,
       }}
     >
+      {/* Top Main Navigation Row */}
       <div
         style={{
           maxWidth: '1280px',
           margin: '0 auto',
-          padding: '0.85rem 1.5rem',
+          padding: '0.75rem 1rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '1.5rem',
+          gap: '1rem',
         }}
       >
         {/* Left: Elegant Crest & Title */}
@@ -112,58 +113,64 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '0.85rem',
+            gap: '0.65rem',
             flexShrink: 0,
             cursor: onGoHome ? 'pointer' : 'default',
           }}
-          title={onGoHome ? 'Return to Welcome Animation' : undefined}
+          title={onGoHome ? 'Return to Welcome Dashboard' : undefined}
         >
           <div
             style={{
-              width: '36px',
-              height: '36px',
+              width: '34px',
+              height: '34px',
               borderRadius: '6px',
               background: 'var(--navy-deep)',
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1.25rem',
+              fontSize: '1.2rem',
               boxShadow: '0 2px 4px rgba(10, 25, 47, 0.12)',
+              flexShrink: 0,
             }}
           >
             ♔
           </div>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div
               style={{
                 fontFamily: 'var(--font-heading)',
-                fontSize: '1rem',
+                fontSize: '0.95rem',
                 fontWeight: 800,
                 color: 'var(--navy-deep)',
-                letterSpacing: '0.06em',
+                letterSpacing: '0.05em',
                 lineHeight: 1.1,
+                whiteSpace: 'nowrap',
               }}
             >
               ROYAL SWISS
             </div>
             <div
               style={{
-                fontSize: '0.75rem',
+                fontSize: '0.7rem',
                 color: 'var(--text-muted)',
                 fontFamily: 'var(--font-sans)',
                 letterSpacing: '0.02em',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '140px',
               }}
             >
-              {tournament.name || 'FIDE Dutch Pairing System'}
+              {tournament.name || 'FIDE Dutch'}
             </div>
           </div>
         </div>
 
-        {/* Center: Sleek 5-Step Sequential Timeline */}
+        {/* Center: Desktop 5-Step Sequential Timeline (Hidden on Mobile) */}
         <nav
+          className="hide-on-mobile"
           style={{
-            display: 'flex',
             alignItems: 'center',
             gap: '0.35rem',
             background: 'var(--bg-subtle)',
@@ -230,8 +237,8 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
           })}
         </nav>
 
-        {/* Right: Clean, Subtle Actions (No Clutter) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+        {/* Desktop Actions Bar (Hidden on Mobile) */}
+        <div className="hide-on-mobile" style={{ alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
           {/* Subtle History / Ledger Toggle */}
           <button
             type="button"
@@ -311,12 +318,12 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
                   fontWeight: 700,
                   color: activeArbiter.roleType === 'CERTIFIED_ARBITER' ? 'var(--navy-deep)' : 'var(--green-deep)',
                 }}
-                title={`${activeArbiter.roleType === 'CERTIFIED_ARBITER' ? 'Official FIDE Arbiter' : 'Tournament Director / Organizer'}: ${activeArbiter.name} (${activeArbiter.organizationName || activeArbiter.federation})`}
+                title={`${activeArbiter.roleType === 'CERTIFIED_ARBITER' ? 'Official FIDE Arbiter' : 'Tournament Director / Organizer'}: ${activeArbiter.name}`}
               >
                 <span>
                   {activeArbiter.roleType === 'CERTIFIED_ARBITER'
                     ? `⚖ ${activeArbiter.title} ${activeArbiter.name.split(' ')[0]}`
-                    : `🏛 ${activeArbiter.title === 'TOURNAMENT_DIRECTOR' ? 'Director' : activeArbiter.title === 'SCHOOL_COACH' ? 'Coach' : 'Organizer'} ${activeArbiter.name.split(' ')[0]}`}
+                    : `🏛 ${activeArbiter.title === 'TOURNAMENT_DIRECTOR' ? 'Director' : 'Organizer'} ${activeArbiter.name.split(' ')[0]}`}
                 </span>
               </div>
 
@@ -334,6 +341,118 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
             </div>
           )}
         </div>
+
+        {/* Mobile Quick Top Actions (Visible Only on Mobile) */}
+        <div className="show-on-mobile" style={{ alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
+          {onOpenCloudSync && (
+            <button
+              type="button"
+              onClick={onOpenCloudSync}
+              className="btn btn-secondary-white"
+              style={{
+                fontSize: '0.72rem',
+                padding: '0.35rem 0.55rem',
+                color: isSupabaseConfigured() ? 'var(--green-deep)' : 'var(--navy-deep)',
+                borderColor: isSupabaseConfigured() ? 'var(--green-border)' : 'var(--navy-border-light)',
+                background: isSupabaseConfigured() ? 'var(--green-tint)' : '#ffffff',
+                minHeight: '34px',
+              }}
+              title="Cloud Sync"
+            >
+              <Database size={12} color={isSupabaseConfigured() ? 'var(--green-primary)' : 'var(--navy-royal)'} />
+              <span style={{ fontSize: '0.68rem' }}>{isSupabaseConfigured() ? 'Live' : 'Cloud'}</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onOpenActivityDrawer}
+            className="btn btn-secondary-white"
+            style={{ fontSize: '0.72rem', padding: '0.35rem 0.55rem', minHeight: '34px' }}
+            title="Activity History & Undo"
+          >
+            <RotateCcw size={12} />
+            <span style={{ fontSize: '0.68rem' }}>{auditCount}</span>
+          </button>
+
+          {onSignOut && (
+            <button
+              type="button"
+              onClick={onSignOut}
+              className="btn btn-minimal"
+              style={{ fontSize: '0.72rem', padding: '0.35rem 0.5rem', minHeight: '34px' }}
+              title="Exit"
+            >
+              Exit
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Dedicated Horizontal Steps Nav (Visible Only on Mobile) */}
+      <div
+        className="show-on-mobile"
+        style={{
+          borderTop: '1px solid var(--navy-border-light)',
+          background: 'var(--bg-subtle)',
+          padding: '0.35rem 0.5rem',
+          width: '100%',
+        }}
+      >
+        <nav
+          className="mobile-touch-scroll"
+          style={{
+            gap: '0.3rem',
+            width: '100%',
+            padding: '0.1rem 0',
+          }}
+        >
+          {steps.map((s) => {
+            const isActive = currentStep === s.id;
+            const canClick = s.isAvailable;
+
+            return (
+              <button
+                key={s.id}
+                type="button"
+                disabled={!canClick}
+                onClick={() => canClick && onSelectStep(s.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  padding: '0.45rem 0.65rem',
+                  borderRadius: '6px',
+                  border: isActive ? '1px solid var(--navy-deep)' : '1px solid var(--navy-border-light)',
+                  background: isActive ? 'var(--navy-deep)' : '#ffffff',
+                  color: isActive ? '#ffffff' : canClick ? 'var(--text-main)' : 'var(--text-light)',
+                  fontSize: '0.76rem',
+                  fontWeight: isActive ? 700 : 600,
+                  fontFamily: 'var(--font-sans)',
+                  whiteSpace: 'nowrap',
+                  cursor: canClick ? 'pointer' : 'not-allowed',
+                  flexShrink: 0,
+                  minHeight: '36px',
+                }}
+              >
+                {s.isCompleted && !isActive ? (
+                  <Check size={11} color="var(--green-primary)" strokeWidth={3} />
+                ) : (
+                  <span
+                    style={{
+                      fontSize: '0.66rem',
+                      opacity: isActive ? 0.9 : 0.6,
+                      fontFamily: 'var(--font-mono)',
+                    }}
+                  >
+                    {s.stepNumber}
+                  </span>
+                )}
+                <span>{s.title}</span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </header>
   );

@@ -69,20 +69,21 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
           right: 0,
           background: 'var(--navy-deep)',
           color: '#ffffff',
-          padding: '0.45rem 1rem',
-          fontSize: '0.72rem',
+          padding: '0.45rem 0.75rem',
+          fontSize: '0.7rem',
           fontWeight: 700,
-          letterSpacing: '0.08em',
+          letterSpacing: '0.06em',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 40,
           borderBottom: '1px solid rgba(255,255,255,0.1)',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
         }}
       >
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ color: '#4ade80' }}>●</span> FIDE DUTCH ALGORITHM C.04.3 CERTIFIED •
-          MATHEMATICALLY VERIFIED TIE-BREAKS • BUCHHOLZ CUT-1 MATRIX • ARBITERS & ORGANIZERS SUITE
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
+          <span style={{ color: '#4ade80' }}>●</span> FIDE DUTCH C.04.3 CERTIFIED • MATHEMATICALLY VERIFIED TIE-BREAKS • ARBITERS & ORGANIZERS SUITE
         </span>
       </div>
 
@@ -246,10 +247,10 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
         <h1
           style={{
             fontFamily: 'var(--font-heading)',
-            fontSize: '2.5rem',
+            fontSize: 'clamp(1.75rem, 6vw, 2.6rem)',
             fontWeight: 800,
             color: 'var(--navy-deep)',
-            letterSpacing: '0.05em',
+            letterSpacing: '0.04em',
             lineHeight: 1.15,
             marginBottom: '0.6rem',
           }}
@@ -260,10 +261,10 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
         <p
           style={{
             fontFamily: 'var(--font-sans)',
-            fontSize: '0.98rem',
+            fontSize: 'clamp(0.86rem, 2.8vw, 0.98rem)',
             color: 'var(--text-muted)',
             maxWidth: '620px',
-            margin: '0 auto 1.75rem',
+            margin: '0 auto 1.5rem',
             lineHeight: 1.55,
           }}
         >
@@ -278,9 +279,10 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
             background: 'var(--bg-secondary)',
             border: '1px solid var(--navy-border-light)',
             borderRadius: '10px',
-            padding: '1rem 1.25rem',
+            padding: '0.85rem 1rem',
             maxWidth: '560px',
-            margin: '0 auto 1.75rem',
+            width: '100%',
+            margin: '0 auto 1.5rem',
             textAlign: 'left',
           }}
         >
@@ -551,7 +553,7 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
                 gap: '0.85rem',
                 maxWidth: '640px',
                 margin: '0 auto 1.25rem',
