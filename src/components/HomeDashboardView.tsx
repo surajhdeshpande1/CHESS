@@ -14,11 +14,12 @@ import {
   Award,
   CheckCircle2,
   FileSpreadsheet,
+  Crown,
+  Database,
 } from 'lucide-react';
 import { ArbiterProfile } from '../lib/arbiterAuth';
 import { TournamentState } from '../lib/fideSwissEngine';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
-import { Database } from 'lucide-react';
 
 interface HomeDashboardViewProps {
   activeArbiter: ArbiterProfile | null;
@@ -28,6 +29,7 @@ interface HomeDashboardViewProps {
   onLaunchDemoTournament: () => void;
   onImportDocument: () => void;
   onOpenCloudSync?: () => void;
+  onOpenAdminConsole?: () => void;
   onBackToIntro?: () => void;
   onSignOut: () => void;
   onOpenOrganizerHub?: () => void;
@@ -41,6 +43,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
   onLaunchDemoTournament,
   onImportDocument,
   onOpenCloudSync,
+  onOpenAdminConsole,
   onBackToIntro,
   onSignOut,
   onOpenOrganizerHub,
@@ -197,6 +200,30 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
                 title="Open Multi-Tournament Command Center"
               >
                 <span>🗂️ All My Tournaments</span>
+              </button>
+            )}
+
+            {onOpenAdminConsole && (
+              <button
+                type="button"
+                onClick={onOpenAdminConsole}
+                className="btn btn-secondary-white"
+                style={{
+                  fontSize: '0.74rem',
+                  padding: '0.35rem 0.75rem',
+                  color: '#b45309',
+                  borderColor: '#f59e0b',
+                  background: 'rgba(245, 158, 11, 0.1)',
+                  fontWeight: 800,
+                  minHeight: '34px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                }}
+                title="Open Website Superadmin Console (All Access)"
+              >
+                <Crown size={13} color="#d97706" />
+                <span>Admin</span>
               </button>
             )}
 

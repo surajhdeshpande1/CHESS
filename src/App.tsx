@@ -17,6 +17,7 @@ import { PrizeCalculatorModal } from './components/PrizeCalculatorModal';
 import { FindMyBoardModal } from './components/FindMyBoardModal';
 import { BulkCertificatesModal } from './components/BulkCertificatesModal';
 import { SupabaseSyncModal } from './components/SupabaseSyncModal';
+import { AdminCommandCenterModal } from './components/AdminCommandCenterModal';
 import { isSupabaseConfigured } from './lib/supabaseClient';
 import { saveTournamentToCloud } from './storage/supabaseSync';
 import {
@@ -170,6 +171,7 @@ export const App: React.FC = () => {
   const [isFindBoardModalOpen, setIsFindBoardModalOpen] = useState(false);
   const [isCertificatesModalOpen, setIsCertificatesModalOpen] = useState(false);
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
 
   // HTML5 History & State Navigation Engine
   const navigateToView = (newMode: 'LANDING' | 'AUTH' | 'DASHBOARD' | 'APP' | 'ORGANIZER_HUB') => {
@@ -193,6 +195,10 @@ export const App: React.FC = () => {
   // Universal In-App & Browser Back Button Resolver
   const handleGoBack = () => {
     // 1. If any modal or drawer is open, dismiss it first
+    if (isAdminModalOpen) {
+      setIsAdminModalOpen(false);
+      return;
+    }
     if (isActivityDrawerOpen) {
       setIsActivityDrawerOpen(false);
       return;
@@ -267,7 +273,8 @@ export const App: React.FC = () => {
         isPrizeModalOpen ||
         isFindBoardModalOpen ||
         isCertificatesModalOpen ||
-        isSupabaseModalOpen
+        isSupabaseModalOpen ||
+        isAdminModalOpen
       ) {
         setIsActivityDrawerOpen(false);
         setIsIntegrityModalOpen(false);
@@ -276,6 +283,7 @@ export const App: React.FC = () => {
         setIsFindBoardModalOpen(false);
         setIsCertificatesModalOpen(false);
         setIsSupabaseModalOpen(false);
+        setIsAdminModalOpen(false);
         return;
       }
 
@@ -303,6 +311,7 @@ export const App: React.FC = () => {
     isFindBoardModalOpen,
     isCertificatesModalOpen,
     isSupabaseModalOpen,
+    isAdminModalOpen,
     tournament,
   ]);
 
@@ -784,51 +793,97 @@ export const App: React.FC = () => {
     );
   }
 
+  const commonModals = (
+    <>
+      <AdminCommandCenterModal
+        isOpen={isAdminModalOpen}
+        onClose={() => setIsAdminModalOpen(false)}
+        workspace={workspace}
+        activeArbiter={activeArbiter}
+        onLoadTournamentIntoWorkspace={(newVault) => {
+          setVault(newVault);
+          const t = newVault.currentState;
+          if (t.status === 'COMPLETED') navigateToStep('final_results');
+          else if (t.status === 'IN_PROGRESS') navigateToStep('round_matches');
+          else if (t.players.length > 0) navigateToStep('roster_entry');
+          else navigateToStep('create_tournament');
+          navigateToView('APP');
+        }}
+      />
+      <SupabaseSyncModal
+        isOpen={isSupabaseModalOpen}
+        onClose={() => setIsSupabaseModalOpen(false)}
+        vault={vault}
+        activeArbiter={activeArbiter}
+        onLoadVaultFromCloud={(newVault) => {
+          setVault(newVault);
+          const t = newVault.currentState;
+          if (t.status === 'COMPLETED') navigateToStep('final_results');
+          else if (t.status === 'IN_PROGRESS') navigateToStep('round_matches');
+          else if (t.players.length > 0) navigateToStep('roster_entry');
+          else navigateToStep('create_tournament');
+          navigateToView('APP');
+        }}
+      />
+    </>
+  );
+
   // 2. Arbiter Sign In & Registration View
   if (viewMode === 'AUTH') {
     return (
-      <ArbiterAuthView
-        onSuccess={(arbiter) => {
-          setActiveArbiter(arbiter);
-          navigateToView('DASHBOARD');
-        }}
-        onBackToLanding={() => navigateToView('LANDING')}
-      />
+      <>
+        <ArbiterAuthView
+          onSuccess={(arbiter) => {
+            setActiveArbiter(arbiter);
+            navigateToView('DASHBOARD');
+          }}
+          onBackToLanding={() => navigateToView('LANDING')}
+          onOpenAdminConsole={() => setIsAdminModalOpen(true)}
+        />
+        {commonModals}
+      </>
     );
   }
 
   // 3. Chief Arbiter Home Dashboard View
   if (viewMode === 'DASHBOARD') {
     return (
-      <HomeDashboardView
-        activeArbiter={activeArbiter}
-        tournament={tournament}
-        onEnterActiveTournament={() => navigateToView('APP')}
-        onCreateNewTournament={handleCreateNewFromDashboard}
-        onLaunchDemoTournament={handleLaunchDemoTournament}
-        onImportDocument={handleImportDocumentFromDashboard}
-        onOpenCloudSync={() => setIsSupabaseModalOpen(true)}
-        onBackToIntro={() => navigateToView('LANDING')}
-        onOpenOrganizerHub={() => navigateToView('ORGANIZER_HUB')}
-        onSignOut={() => {
-          logoutArbiter();
-          setActiveArbiter(null);
-          navigateToView('LANDING');
-        }}
-      />
+      <>
+        <HomeDashboardView
+          activeArbiter={activeArbiter}
+          tournament={tournament}
+          onEnterActiveTournament={() => navigateToView('APP')}
+          onCreateNewTournament={handleCreateNewFromDashboard}
+          onLaunchDemoTournament={handleLaunchDemoTournament}
+          onImportDocument={handleImportDocumentFromDashboard}
+          onOpenCloudSync={() => setIsSupabaseModalOpen(true)}
+          onOpenAdminConsole={() => setIsAdminModalOpen(true)}
+          onBackToIntro={() => navigateToView('LANDING')}
+          onOpenOrganizerHub={() => navigateToView('ORGANIZER_HUB')}
+          onSignOut={() => {
+            logoutArbiter();
+            setActiveArbiter(null);
+            navigateToView('LANDING');
+          }}
+        />
+        {commonModals}
+      </>
     );
   }
 
   // 3.5 Organizer Command Hub View
   if (viewMode === 'ORGANIZER_HUB') {
     return (
-      <OrganizerDashboardHub
-        workspace={workspace}
-        onUpdateWorkspace={setWorkspace}
-        onOpenTournament={handleSwitchTournament}
-        isDarkTheme={true}
-        onBackToApp={() => navigateToView('APP')}
-      />
+      <>
+        <OrganizerDashboardHub
+          workspace={workspace}
+          onUpdateWorkspace={setWorkspace}
+          onOpenTournament={handleSwitchTournament}
+          isDarkTheme={true}
+          onBackToApp={() => navigateToView('APP')}
+        />
+        {commonModals}
+      </>
     );
   }
 
@@ -849,6 +904,7 @@ export const App: React.FC = () => {
         onGoHome={() => navigateToView('DASHBOARD')}
         onGoBack={handleGoBack}
         onOpenCloudSync={() => setIsSupabaseModalOpen(true)}
+        onOpenAdminConsole={() => setIsAdminModalOpen(true)}
         activeArbiter={activeArbiter}
         onSignOut={() => {
           logoutArbiter();
@@ -969,22 +1025,8 @@ export const App: React.FC = () => {
         tournament={tournament}
       />
 
-      {/* Feature 9: Supabase Cloud Database & Live Sync */}
-      <SupabaseSyncModal
-        isOpen={isSupabaseModalOpen}
-        onClose={() => setIsSupabaseModalOpen(false)}
-        vault={vault}
-        activeArbiter={activeArbiter}
-        onLoadVaultFromCloud={(newVault) => {
-          setVault(newVault);
-          const t = newVault.currentState;
-          if (t.status === 'COMPLETED') navigateToStep('final_results');
-          else if (t.status === 'IN_PROGRESS') navigateToStep('round_matches');
-          else if (t.players.length > 0) navigateToStep('roster_entry');
-          else navigateToStep('create_tournament');
-          navigateToView('APP');
-        }}
-      />
+      {/* Feature 9: Cloud Database Sync & Website Superadmin All-Access Console */}
+      {commonModals}
     </div>
   );
 };

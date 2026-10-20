@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, RotateCcw, Printer, Download, Database, ArrowLeft } from 'lucide-react';
+import { Check, RotateCcw, Printer, Download, Database, ArrowLeft, Crown } from 'lucide-react';
 import { TournamentState } from '../lib/fideSwissEngine';
 import { ArbiterProfile } from '../lib/arbiterAuth';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
@@ -24,6 +24,7 @@ interface SequentialStepperProps {
   onGoHome?: () => void;
   onGoBack?: () => void;
   onOpenCloudSync?: () => void;
+  onOpenAdminConsole?: () => void;
   activeArbiter?: ArbiterProfile | null;
   onSignOut?: () => void;
   onOpenOrganizerHub?: () => void;
@@ -43,6 +44,7 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
   onGoHome,
   onGoBack,
   onOpenCloudSync,
+  onOpenAdminConsole,
   activeArbiter,
   onSignOut,
   onOpenOrganizerHub,
@@ -419,6 +421,30 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
             </button>
           )}
 
+          {onOpenAdminConsole && (
+            <button
+              type="button"
+              onClick={onOpenAdminConsole}
+              className="btn btn-secondary-white"
+              style={{
+                fontSize: '0.76rem',
+                padding: '0.35rem 0.65rem',
+                minHeight: '34px',
+                color: '#b45309',
+                borderColor: '#f59e0b',
+                background: 'rgba(245, 158, 11, 0.1)',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
+              title="Open Website Superadmin Console (All Access)"
+            >
+              <Crown size={13} color="#d97706" />
+              <span>Admin</span>
+            </button>
+          )}
+
           {activeArbiter && (
             <div
               style={{
@@ -489,6 +515,25 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
             >
               <Database size={12} color={isSupabaseConfigured() ? 'var(--green-primary)' : 'var(--navy-royal)'} />
               <span style={{ fontSize: '0.68rem' }}>{isSupabaseConfigured() ? 'Live' : 'Cloud'}</span>
+            </button>
+          )}
+
+          {onOpenAdminConsole && (
+            <button
+              type="button"
+              onClick={onOpenAdminConsole}
+              className="btn btn-secondary-white"
+              style={{
+                fontSize: '0.72rem',
+                padding: '0.35rem 0.55rem',
+                color: '#b45309',
+                borderColor: '#f59e0b',
+                background: 'rgba(245, 158, 11, 0.1)',
+                minHeight: '34px',
+              }}
+              title="Admin Console"
+            >
+              <Crown size={12} color="#d97706" />
             </button>
           )}
 

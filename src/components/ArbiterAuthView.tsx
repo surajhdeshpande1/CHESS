@@ -12,6 +12,7 @@ import {
   Building2,
   Sparkles,
   Zap,
+  Crown,
 } from 'lucide-react';
 import {
   ArbiterProfile,
@@ -25,11 +26,13 @@ import {
 interface ArbiterAuthViewProps {
   onSuccess: (arbiter: ArbiterProfile) => void;
   onBackToLanding?: () => void;
+  onOpenAdminConsole?: () => void;
 }
 
 export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
   onSuccess,
   onBackToLanding,
+  onOpenAdminConsole,
 }) => {
   const [activeTab, setActiveTab] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
 
@@ -412,6 +415,33 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
                 <span>Quick Access: Continue as Guest Organizer</span>
               </button>
             </div>
+
+            {onOpenAdminConsole && (
+              <div style={{ marginTop: '0.85rem', textAlign: 'center' }}>
+                <button
+                  type="button"
+                  onClick={onOpenAdminConsole}
+                  style={{
+                    background: 'rgba(245, 158, 11, 0.12)',
+                    border: '1px solid #f59e0b',
+                    color: '#b45309',
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    padding: '0.45rem 1rem',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    width: '100%',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Crown size={14} color="#d97706" />
+                  <span>Website Administrator? Unlock All-Access Console</span>
+                </button>
+              </div>
+            )}
 
             <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
