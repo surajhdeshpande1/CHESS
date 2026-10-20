@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft, Search, Trophy, TrendingUp, TrendingDown, Eye } from 'lucide-react';
 import { CandidatePlayer, TournamentState } from '../lib/fideSwissEngine';
 import { PlayerMatchDetailsModal } from './PlayerMatchDetailsModal';
+import { AgeCategoryWinnersView } from './AgeCategoryWinnersView';
 
 interface LiveStandingsViewProps {
   tournament: TournamentState;
@@ -13,9 +14,11 @@ interface LiveStandingsViewProps {
 
 export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
   tournament,
+  onOpenPrizes,
   onProceedToNextRound,
   onGoBack,
 }) => {
+  const [standingsTab, setStandingsTab] = useState<'OPEN' | 'AGE_CATEGORIES'>('OPEN');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState<CandidatePlayer | null>(null);
 
@@ -93,25 +96,40 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
             </button>
           )}
 
-          <div style={{ position: 'relative', width: '220px' }}>
-            <Search
-              size={13}
-              style={{
-                position: 'absolute',
-                left: '10px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Search player or FIDE ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: '100%', paddingLeft: '2rem', paddingRight: '0.75rem', fontSize: '0.8rem' }}
-            />
-          </div>
+          {onOpenPrizes && (
+            <button
+              type="button"
+              onClick={onOpenPrizes}
+              className="btn btn-secondary-white"
+              style={{ fontSize: '0.82rem', padding: '0.45rem 0.85rem', fontWeight: 700, gap: '0.4rem' }}
+              title="Open Official Prize Allocation & Age-Category Podiums"
+            >
+              <Trophy size={14} color="#b45309" />
+              <span>Prizes & Trophies</span>
+            </button>
+          )}
+
+          {standingsTab === 'OPEN' && (
+            <div style={{ position: 'relative', width: '220px' }}>
+              <Search
+                size={13}
+                style={{
+                  position: 'absolute',
+                  left: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'var(--text-muted)',
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Search player or FIDE ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ width: '100%', paddingLeft: '2rem', paddingRight: '0.75rem', fontSize: '0.8rem' }}
+              />
+            </div>
+          )}
 
           {onProceedToNextRound && tournament.status === 'IN_PROGRESS' && (
             <button
@@ -127,29 +145,82 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
         </div>
       </div>
 
-      {/* Helpful Hint banner */}
+      {/* Segmented View Switcher: Overall Open Standings vs Age-Category Live Podiums */}
       <div
         style={{
-          background: 'rgba(30, 58, 138, 0.05)',
-          border: '1px solid rgba(30, 58, 138, 0.15)',
+          display: 'inline-flex',
+          background: 'var(--bg-subtle, #f1f5f9)',
+          padding: '0.25rem',
           borderRadius: '8px',
-          padding: '0.5rem 0.85rem',
-          fontSize: '0.78rem',
-          color: 'var(--navy-royal)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          marginBottom: '1rem',
+          border: '1px solid var(--navy-border-light, #e2e8f0)',
+          marginBottom: '1.25rem',
+          gap: '0.25rem',
         }}
       >
-        <span style={{ fontSize: '1rem' }}>💡</span>
-        <span>
-          <strong>Interactive Player Dossiers:</strong> Tap or click any player row below to reveal their full match breakdown — including opponent seeds, FIDE IDs, piece colors, game scores, and tie-break details.
-        </span>
+        <button
+          type="button"
+          onClick={() => setStandingsTab('OPEN')}
+          style={{
+            padding: '0.45rem 0.95rem',
+            borderRadius: '6px',
+            border: 'none',
+            fontSize: '0.82rem',
+            fontWeight: standingsTab === 'OPEN' ? 800 : 600,
+            background: standingsTab === 'OPEN' ? 'var(--navy-deep, #0a192f)' : 'transparent',
+            color: standingsTab === 'OPEN' ? '#ffffff' : 'var(--text-muted, #64748b)',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          📊 Overall Open Standings ({tournament.players.length})
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setStandingsTab('AGE_CATEGORIES')}
+          style={{
+            padding: '0.45rem 0.95rem',
+            borderRadius: '6px',
+            border: 'none',
+            fontSize: '0.82rem',
+            fontWeight: standingsTab === 'AGE_CATEGORIES' ? 800 : 600,
+            background: standingsTab === 'AGE_CATEGORIES' ? 'var(--navy-deep, #0a192f)' : 'transparent',
+            color: standingsTab === 'AGE_CATEGORIES' ? '#ffffff' : 'var(--text-muted, #64748b)',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          🧒 Age-Category Live Podiums (U-9 to U-19)
+        </button>
       </div>
 
-      {/* Official Standings Table with Sticky Column */}
-      <div className="card-clean" style={{ padding: '0.35rem', overflowX: 'auto' }}>
+      {standingsTab === 'AGE_CATEGORIES' ? (
+        <AgeCategoryWinnersView tournament={tournament} />
+      ) : (
+        <>
+          {/* Helpful Hint banner */}
+          <div
+            style={{
+              background: 'rgba(30, 58, 138, 0.05)',
+              border: '1px solid rgba(30, 58, 138, 0.15)',
+              borderRadius: '8px',
+              padding: '0.5rem 0.85rem',
+              fontSize: '0.78rem',
+              color: 'var(--navy-royal)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '1rem',
+            }}
+          >
+            <span style={{ fontSize: '1rem' }}>💡</span>
+            <span>
+              <strong>Interactive Player Dossiers:</strong> Tap or click any player row below to reveal their full match breakdown — including opponent seeds, FIDE IDs, piece colors, game scores, and tie-break details.
+            </span>
+          </div>
+
+          {/* Official Standings Table with Sticky Column */}
+          <div className="card-clean" style={{ padding: '0.35rem', overflowX: 'auto' }}>
         <table className="table-minimal">
           <thead>
             <tr>
@@ -297,6 +368,8 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
           </tbody>
         </table>
       </div>
+    </>
+  )}
 
       {/* Interactive Match Details Modal */}
       <PlayerMatchDetailsModal

@@ -93,36 +93,68 @@ const MASTER_ROSTER: Array<{
   { name: 'Piorun, Kacper', rating: 2595, title: 'GM', birthYear: 1991, gender: 'M', organization: 'Warsaw Chess', fideId: '1123406' },
 ];
 
+// Realistic Junior & Youth Age Distribution across FIDE Categories:
+// Under-9 (2017-2018), Under-11 (2015-2016), Under-13 (2013-2014),
+// Under-15 (2011-2012), Under-19 (2007-2010), College/Youth (2005-2006)
+const DEMO_YOUTH_BIRTH_YEARS = [
+  2018, // Age 8 -> Under-9
+  2017, // Age 9 -> Under-9
+  2016, // Age 10 -> Under-11
+  2015, // Age 11 -> Under-11
+  2014, // Age 12 -> Under-13
+  2013, // Age 13 -> Under-13
+  2012, // Age 14 -> Under-15
+  2011, // Age 15 -> Under-15
+  2010, // Age 16 -> Under-19
+  2009, // Age 17 -> Under-19
+  2008, // Age 18 -> Under-19
+  2007, // Age 19 -> Under-19
+  2006, // Age 20 -> College/Youth
+  2005, // Age 21 -> College/Youth
+];
+
 export function get64DemoCandidates(): CandidatePlayer[] {
-  const rawList: CandidatePlayer[] = MASTER_ROSTER.map((m, idx) => ({
-    id: `cand-${idx + 1}`,
-    name: m.name,
-    rating: m.rating,
-    title: m.title,
-    birthYear: m.birthYear,
-    gender: m.gender,
-    organization: m.organization,
-    fideId: m.fideId,
-    isActive: true,
-    requestedByes: {},
-    tpn: 0,
-    score: 0,
-    roundsWon: 0,
-    otbWins: 0,
-    otbBlackWins: 0,
-    roundsDrawn: 0,
-    roundsLost: 0,
-    receivedPABOrForfeitWin: false,
-    history: [],
-    tieBreaks: {
-      buchholzCut1: 0,
-      buchholzTotal: 0,
-      sonnebornBerger: 0,
-      progressiveScore: 0,
-      directEncounter: 0,
-      mostWins: 0,
-    },
-  }));
+  const rawList: CandidatePlayer[] = MASTER_ROSTER.map((m, idx) => {
+    // Distribute ages 8 to 21 across the first 48 players so all U-9 through U-19 boards populate immediately
+    const isYouth = idx < 48;
+    const assignedBirthYear = isYouth
+      ? DEMO_YOUTH_BIRTH_YEARS[idx % DEMO_YOUTH_BIRTH_YEARS.length]
+      : m.birthYear;
+
+    // Provide balanced gender distribution (approx 1/3 female) for Boys & Girls splits
+    const isFemale = idx % 3 === 1 || idx === 4 || idx === 10 || idx === 32;
+    const finalGender: 'M' | 'F' | 'OTHER' = isFemale ? 'F' : 'M';
+
+    return {
+      id: `cand-${idx + 1}`,
+      name: m.name,
+      rating: m.rating,
+      title: m.title,
+      birthYear: assignedBirthYear,
+      gender: finalGender,
+      organization: m.organization,
+      fideId: m.fideId,
+      isActive: true,
+      requestedByes: {},
+      tpn: 0,
+      score: 0,
+      roundsWon: 0,
+      otbWins: 0,
+      otbBlackWins: 0,
+      roundsDrawn: 0,
+      roundsLost: 0,
+      receivedPABOrForfeitWin: false,
+      history: [],
+      tieBreaks: {
+        buchholzCut1: 0,
+        buchholzTotal: 0,
+        sonnebornBerger: 0,
+        progressiveScore: 0,
+        directEncounter: 0,
+        mostWins: 0,
+      },
+    };
+  });
 
   return seedPlayersAndAssignTPN(rawList);
 }

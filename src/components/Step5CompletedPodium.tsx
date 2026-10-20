@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Download, Printer, RotateCcw, ArrowLeft } from 'lucide-react';
+import { Download, Printer, RotateCcw, ArrowLeft, Trophy } from 'lucide-react';
 import { CandidatePlayer, TournamentState } from '../lib/fideSwissEngine';
 import { PlayerMatchDetailsModal } from './PlayerMatchDetailsModal';
+import { AgeCategoryWinnersView } from './AgeCategoryWinnersView';
 
 interface Step5CompletedPodiumProps {
   tournament: TournamentState;
@@ -17,6 +18,7 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
   tournament,
   onExportTRF,
   onOpenPrint,
+  onOpenPrizes,
   onRestartNewTournament,
   onGoBack,
 }) => {
@@ -92,6 +94,19 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
             >
               <ArrowLeft size={14} />
               <span>Back to Standings</span>
+            </button>
+          )}
+
+          {onOpenPrizes && (
+            <button
+              type="button"
+              onClick={onOpenPrizes}
+              className="btn btn-primary-green"
+              style={{ fontSize: '0.82rem', padding: '0.45rem 1rem', fontWeight: 700, gap: '0.4rem' }}
+              title="Open Official Age-Category Podiums & Prize Allocator"
+            >
+              <Trophy size={14} />
+              <span>Age-Category Podiums & Prizes</span>
             </button>
           )}
 
@@ -407,6 +422,11 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Official FIDE Age-Category Championship Podiums */}
+      <div style={{ marginTop: '2.5rem' }}>
+        <AgeCategoryWinnersView tournament={tournament} />
       </div>
 
       {/* Interactive Match Details Modal */}
