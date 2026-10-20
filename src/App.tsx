@@ -25,6 +25,7 @@ import {
   ArbiterProfile,
   getActiveArbiterSession,
   logoutArbiter,
+  createGuestOrganizerSession,
 } from './lib/arbiterAuth';
 import {
   BoardPairing,
@@ -574,7 +575,13 @@ export const App: React.FC = () => {
       <LandingHeroView
         activeArbiter={activeArbiter}
         onProceedToAuth={() => setViewMode('AUTH')}
-        onEnterApp={() => setViewMode('DASHBOARD')}
+        onEnterApp={() => {
+          if (!activeArbiter) {
+            const guest = createGuestOrganizerSession('Tournament Organizer', 'Club Open');
+            setActiveArbiter(guest);
+          }
+          setViewMode('DASHBOARD');
+        }}
         onSignOut={() => {
           logoutArbiter();
           setActiveArbiter(null);

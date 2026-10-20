@@ -96,15 +96,15 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
               <div
                 style={{
                   fontFamily: 'var(--font-heading)',
-                  fontSize: '0.98rem',
+                  fontSize: '1rem',
                   fontWeight: 900,
                   color: 'var(--navy-deep)',
-                  letterSpacing: '0.04em',
+                  letterSpacing: '0.06em',
                   lineHeight: 1.1,
                   whiteSpace: 'nowrap',
                 }}
               >
-                ROYAL SWISS
+                CHATURANGA
               </div>
               <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                 FIDE Dutch Pairing & Tournament Suite

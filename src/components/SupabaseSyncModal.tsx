@@ -135,7 +135,7 @@ export const SupabaseSyncModal: React.FC<SupabaseSyncModalProps> = ({
     }
   };
 
-  const SQL_SCHEMA = `-- ROYAL SWISS: SUPABASE DATABASE SCHEMA
+  const SQL_SCHEMA = `-- CHATURANGA: SUPABASE DATABASE SCHEMA
 CREATE TABLE IF NOT EXISTS public.tournaments (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,

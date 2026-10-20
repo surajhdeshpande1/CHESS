@@ -1,5 +1,5 @@
 -- ==============================================================================
--- ROYAL SWISS: OFFICIAL FIDE TOURNAMENT SUITE - SUPABASE DATABASE SCHEMA
+-- CHATURANGA: OFFICIAL FIDE TOURNAMENT SUITE - SUPABASE DATABASE SCHEMA
 -- ==============================================================================
 -- Run this script in your Supabase SQL Editor (Dashboard -> SQL Editor -> New Query)
 -- It creates tables for Tournaments, Arbiters, Live Spectator Sync, and Realtime.

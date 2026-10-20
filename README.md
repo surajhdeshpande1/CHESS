@@ -1,6 +1,6 @@
-# React + TypeScript + Vite
+# CHATURANGA — Official FIDE Dutch Swiss Tournament Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The error-proof FIDE Dutch C.04.3 tournament engine, 1-tap arbiter scoring, TRF16 rating export, and Buchholz C.07 tie-break platform.
 
 Currently, two official plugins are available:
 

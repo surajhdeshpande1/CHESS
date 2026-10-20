@@ -38,6 +38,8 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
   const [interactiveScore, setInteractiveScore] = useState<'PENDING' | '1-0' | '0-1' | '1/2-1/2'>('PENDING');
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+  const [progressPercent, setProgressPercent] = useState<number>(0);
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const [userSelectedFormat, setUserSelectedFormat] = useState<'AUTO' | 'PORTRAIT' | 'LANDSCAPE'>('AUTO');
   const [systemIsMobile, setSystemIsMobile] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -88,6 +90,16 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
     const nextMuted = !isMuted;
     videoRef.current.muted = nextMuted;
     setIsMuted(nextMuted);
+  };
+
+  const handleTimeUpdate = () => {
+    if (!videoRef.current) return;
+    const cur = videoRef.current.currentTime;
+    const dur = videoRef.current.duration;
+    if (dur && dur > 0) {
+      setProgressPercent((cur / dur) * 100);
+      setSecondsLeft(Math.max(0, Math.ceil(dur - cur)));
+    }
   };
 
   const handleAction = (callback: () => void) => {
@@ -142,7 +154,7 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
         }}
       >
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
-          <span style={{ color: '#4ade80' }}>●</span> FIDE DUTCH C.04.3 CERTIFIED • MATHEMATICALLY VERIFIED TIE-BREAKS • ARBITERS & ORGANIZERS SUITE
+          <span style={{ color: '#4ade80' }}>●</span> CHATURANGA • FIDE DUTCH C.04.3 CERTIFIED • ARBITERS & ORGANIZERS SUITE
         </span>
       </div>
 
@@ -298,7 +310,7 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
               fontWeight: 800,
             }}
           >
-            FIDE ARBITERS & TOURNAMENT DIRECTORS SUITE
+            CHATURANGA • FIDE ARBITERS & DIRECTORS SUITE
           </span>
         </div>
 
@@ -314,7 +326,7 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
             marginBottom: '0.6rem',
           }}
         >
-          CHESS SWISS PRO
+          CHATURANGA
         </h1>
 
         <p
@@ -357,12 +369,15 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
             src={currentVideoSrc}
             poster="/hero.png"
             autoPlay
-            loop
             muted={isMuted}
             playsInline
             onClick={togglePlay}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
+            onTimeUpdate={handleTimeUpdate}
+            onEnded={() => {
+              handleAction(onEnterApp);
+            }}
             style={{
               width: '100%',
               height: '100%',
@@ -405,7 +420,9 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
               }}
             />
             <span>
-              {isPlaying
+              {secondsLeft !== null && isPlaying
+                ? `Entering Home in ${secondsLeft}s`
+                : isPlaying
                 ? isPortraitMode
                   ? 'MOBILE PORTRAIT'
                   : 'DESKTOP 16:9'
@@ -495,6 +512,34 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
               zIndex: 5,
             }}
           >
+            {/* Direct Skip to Home Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAction(onEnterApp);
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '6px 12px',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
+                transition: 'all 0.15s ease',
+              }}
+              title="Skip intro animation and enter Home Page directly"
+            >
+              <span>Skip to Home</span>
+              <ArrowRight size={13} />
+            </button>
+
             {/* Play/Pause Button */}
             <button
               type="button"
@@ -544,6 +589,29 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
               {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
               <span>{isMuted ? 'Unmute' : 'Audio On'}</span>
             </button>
+          </div>
+
+          {/* Glowing Animated Progress Bar along Bottom Edge */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: '3px',
+              background: 'rgba(255, 255, 255, 0.15)',
+              zIndex: 6,
+            }}
+          >
+            <div
+              style={{
+                height: '100%',
+                width: `${progressPercent}%`,
+                background: '#4ade80',
+                boxShadow: '0 0 8px #4ade80',
+                transition: 'width 0.15s linear',
+              }}
+            />
           </div>
         </div>
 

@@ -140,15 +140,15 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
             <div
               style={{
                 fontFamily: 'var(--font-heading)',
-                fontSize: '0.95rem',
+                fontSize: '0.98rem',
                 fontWeight: 800,
                 color: 'var(--navy-deep)',
-                letterSpacing: '0.05em',
+                letterSpacing: '0.06em',
                 lineHeight: 1.1,
                 whiteSpace: 'nowrap',
               }}
             >
-              ROYAL SWISS
+              CHATURANGA
             </div>
             <div
               style={{
