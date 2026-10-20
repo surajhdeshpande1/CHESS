@@ -145,11 +145,15 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
           style={{
             position: 'absolute',
             bottom: 'max(20px, env(safe-area-inset-bottom, 20px))',
-            right: 'max(20px, env(safe-area-inset-right, 20px))',
+            right: 'max(16px, env(safe-area-inset-right, 16px))',
+            left: 'max(16px, env(safe-area-inset-left, 16px))',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'flex-end',
+            flexWrap: 'wrap',
             gap: '8px',
             zIndex: 20,
+            pointerEvents: 'none',
           }}
         >
           <button
@@ -172,11 +176,15 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
               boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)',
               transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
               letterSpacing: '0.02em',
+              pointerEvents: 'auto',
+              maxWidth: '100%',
             }}
             title={`Welcome back, ${activeArbiter.name}. Continue to Dashboard`}
           >
-            <span>Continue to Dashboard ({activeArbiter.name.split(' ')[0]})</span>
-            <ArrowRight size={14} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              Continue to Dashboard ({activeArbiter.name.split(' ')[0]})
+            </span>
+            <ArrowRight size={14} style={{ flexShrink: 0 }} />
           </button>
 
           <button
@@ -193,6 +201,8 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
               fontWeight: 600,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
+              pointerEvents: 'auto',
+              flexShrink: 0,
             }}
             title="Sign out of current account"
           >
@@ -206,7 +216,8 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
           style={{
             position: 'absolute',
             bottom: 'max(20px, env(safe-area-inset-bottom, 20px))',
-            right: 'max(20px, env(safe-area-inset-right, 20px))',
+            right: 'max(16px, env(safe-area-inset-right, 16px))',
+            maxWidth: 'calc(100vw - 32px)',
             background: 'rgba(15, 23, 42, 0.85)',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',

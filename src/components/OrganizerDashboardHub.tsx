@@ -538,7 +538,7 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
             ))}
           </div>
 
-          <div style={{ minWidth: '240px' }}>
+          <div style={{ flex: '1 1 200px', minWidth: 'min(100%, 200px)' }}>
             <input
               type="text"
               placeholder="🔍 Search tournaments..."
@@ -564,7 +564,7 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
             gap: '1.25rem',
           }}
         >

@@ -303,7 +303,7 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
   };
 
   return (
-    <div style={{ maxWidth: '780px', margin: '1.25rem auto 2.5rem', padding: '0 1.25rem' }}>
+    <div style={{ maxWidth: '780px', margin: '1.25rem auto 2.5rem', padding: '0 clamp(0.5rem, 3vw, 1.25rem)' }}>
       {/* Back to Dashboard Navigation */}
       {onGoBack && (
         <button
@@ -346,7 +346,7 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
       </div>
 
       {/* Main Configuration Card */}
-      <form onSubmit={handleSubmit} className="card-clean" style={{ padding: '2rem 2.25rem' }}>
+      <form onSubmit={handleSubmit} className="card-clean responsive-form-card" style={{ padding: '2rem 2.25rem' }}>
         {/* Tournament Name */}
         <div style={{ marginBottom: '1.5rem' }}>
           <label
@@ -427,6 +427,7 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
 
         {/* DETAILED ROUND TIMER & TIME CONTROL SECTION */}
         <div
+          className="responsive-subcard"
           style={{
             background: 'var(--bg-secondary)',
             border: '1px solid var(--navy-border-light)',
@@ -570,6 +571,7 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
         {/* SIMPLIFIED AGE CATEGORIES & PODIUM CONFIGURATION                   */}
         {/* ================================================================== */}
         <div
+          className="responsive-subcard"
           style={{
             background: 'var(--bg-secondary)',
             border: '1px solid var(--navy-border-light)',

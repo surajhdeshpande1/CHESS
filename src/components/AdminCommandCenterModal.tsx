@@ -659,13 +659,15 @@ END $$;
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* Navigation Tabs */}
             <div
+              className="mobile-touch-scroll"
               style={{
                 background: '#0d1d36',
                 borderBottom: '1px solid #1e3a8a',
-                padding: '0.5rem 1.5rem',
+                padding: '0.5rem 1rem',
                 display: 'flex',
                 gap: '0.5rem',
                 overflowX: 'auto',
+                whiteSpace: 'nowrap',
               }}
             >
               <button

@@ -280,10 +280,8 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
               ? `${enrolledCount} candidate players enrolled and seeded by FIDE rating order.`
               : 'Browse Excel/Word documents from your device, paste rosters directly, or add players individually.'}
           </p>
-        </div>
-
-        {/* Clean Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+        </div>        {/* Clean Actions */}
+        <div className="roster-actions-bar" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
           {onGoBack && (
             <button
               type="button"
@@ -324,7 +322,7 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
             type="button"
             disabled={!canStartRound1}
             onClick={onLockAndPairRound1}
-            className={`btn ${canStartRound1 ? 'btn-primary-green' : 'btn-secondary-white'}`}
+            className={`btn ${canStartRound1 ? 'btn-primary-green' : 'btn-secondary-white'} roster-generate-btn`}
             style={{ padding: '0.65rem 1.5rem', fontWeight: 700 }}
           >
             <span>Generate Round 1 Pairings</span>
@@ -334,7 +332,7 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
       </div>
 
       {/* Main Roster Card */}
-      <div className="card-clean" style={{ padding: '1rem', overflow: 'hidden' }}>
+      <div className="card-clean responsive-card" style={{ padding: '1rem', overflow: 'hidden' }}>
         {enrolledCount === 0 ? (
           <div
             onDragOver={handleDragOver}
@@ -393,17 +391,20 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
                 style={{ padding: '0.75rem 1.4rem' }}
               >
                 <UserPlus size={15} />
-                <span>Add Single Player</span>
+                <span>+ Add Single Player</span>
               </button>
             </div>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.84rem' }}>
+          <div className="table-responsive-container">
+            <div className="mobile-table-hint">
+              👈 Swipe table horizontally to view full candidate details 👉
+            </div>
+            <table className="table-minimal" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.84rem' }}>
               <thead>
                 <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--navy-border-light)' }}>
-                  <th style={{ padding: '0.65rem 0.75rem', width: '60px', color: 'var(--text-muted)' }}>Seed #</th>
-                  <th style={{ padding: '0.65rem 0.75rem', color: 'var(--navy-deep)' }}>Player Name</th>
+                  <th className="table-sticky-col-rank" style={{ padding: '0.65rem 0.75rem', width: '60px', color: 'var(--text-muted)' }}>Seed #</th>
+                  <th className="table-sticky-col-name" style={{ padding: '0.65rem 0.75rem', color: 'var(--navy-deep)' }}>Player Name</th>
                   <th style={{ padding: '0.65rem 0.75rem', width: '100px', color: 'var(--navy-deep)' }}>Elo Rating</th>
                   <th style={{ padding: '0.65rem 0.75rem', width: '90px', color: 'var(--navy-deep)' }}>Title</th>
                   <th style={{ padding: '0.65rem 0.75rem', width: '120px', color: 'var(--navy-deep)' }}>FIDE ID</th>
@@ -420,10 +421,10 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
                       background: idx % 2 === 0 ? '#ffffff' : 'var(--bg-subtle)',
                     }}
                   >
-                    <td style={{ padding: '0.65rem 0.75rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text-muted)' }}>
+                    <td className="table-sticky-col-rank" style={{ padding: '0.65rem 0.75rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text-muted)' }}>
                       #{p.tpn || idx + 1}
                     </td>
-                    <td style={{ padding: '0.65rem 0.75rem', fontWeight: 700, color: 'var(--navy-deep)' }}>
+                    <td className="table-sticky-col-name" style={{ padding: '0.65rem 0.75rem', fontWeight: 700, color: 'var(--navy-deep)' }}>
                       {p.name}
                     </td>
                     <td style={{ padding: '0.65rem 0.75rem', fontFamily: 'var(--font-mono)' }}>

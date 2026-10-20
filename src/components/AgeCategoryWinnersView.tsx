@@ -606,7 +606,7 @@ export const AgeCategoryWinnersView: React.FC<Props> = ({ tournament, isDarkThem
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
           gap: '1.25rem',
         }}
       >

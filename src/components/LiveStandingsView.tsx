@@ -137,7 +137,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
           )}
 
           {standingsTab === 'OPEN' && (
-            <div style={{ position: 'relative', width: '220px' }}>
+            <div style={{ position: 'relative', width: 'min(100%, 220px)', flex: '1 1 180px' }}>
               <Search
                 size={13}
                 style={{
@@ -162,7 +162,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
             <button
               type="button"
               onClick={onProceedToNextRound}
-              className="btn btn-primary-green"
+              className="btn btn-primary-green mobile-full-btn"
               style={{ fontSize: '0.82rem', padding: '0.45rem 1rem' }}
             >
               <span>Next Round Matches</span>
@@ -174,7 +174,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
 
       {/* Segmented View Switcher: Overall Open Standings vs Age-Category Live Podiums */}
       <div
-        className="no-print"
+        className="no-print mobile-touch-scroll"
         style={{
           display: 'inline-flex',
           background: 'var(--bg-subtle, #f1f5f9)',
@@ -183,6 +183,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
           border: '1px solid var(--navy-border-light, #e2e8f0)',
           marginBottom: '1.25rem',
           gap: '0.25rem',
+          maxWidth: '100%',
         }}
       >
         <button
@@ -198,6 +199,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
             color: standingsTab === 'OPEN' ? '#ffffff' : 'var(--text-muted, #64748b)',
             cursor: 'pointer',
             transition: 'all 0.15s ease',
+            whiteSpace: 'nowrap',
           }}
         >
           📊 Overall Open Standings ({tournament.players.length})
@@ -216,6 +218,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
             color: standingsTab === 'AGE_CATEGORIES' ? '#ffffff' : 'var(--text-muted, #64748b)',
             cursor: 'pointer',
             transition: 'all 0.15s ease',
+            whiteSpace: 'nowrap',
           }}
         >
           🧒 Age-Category Live Podiums (U-9 to U-19)
@@ -271,7 +274,10 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
           </div>
 
           {/* Official Standings Table */}
-          <div className="card-clean" style={{ padding: '0.35rem', overflowX: 'auto' }}>
+          <div className="mobile-table-hint">
+            <span>👈 Swipe horizontally to view full tie-break metrics 👉</span>
+          </div>
+          <div className="card-clean table-responsive-container" style={{ padding: '0.35rem' }}>
         <table className="table-minimal fide-standard-print-table" style={{ width: '100%' }}>
           <thead>
             <tr>

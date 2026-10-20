@@ -463,13 +463,12 @@ export const PlayerMatchDetailsModal: React.FC<PlayerMatchDetailsModalProps> = (
                 return (
                   <div
                     key={m.roundNumber}
+                    className="match-detail-row"
                     style={{
                       background: '#ffffff',
                       border: '1px solid var(--navy-border-light)',
                       borderRadius: '8px',
                       padding: '0.85rem 1rem',
-                      display: 'grid',
-                      gridTemplateColumns: 'minmax(85px, 110px) 1fr minmax(130px, 170px)',
                       alignItems: 'center',
                       gap: '1rem',
                       transition: 'all 0.15s ease',

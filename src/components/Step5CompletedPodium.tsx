@@ -145,9 +145,10 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
 
       {/* Podium Cards: 2nd, 1st, 3rd (Olympic Order) */}
       <div
+        className="podium-container"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
           gap: '1rem',
           alignItems: 'flex-end',
           maxWidth: '880px',

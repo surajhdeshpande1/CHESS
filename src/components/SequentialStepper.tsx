@@ -192,6 +192,7 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
                 CHATURANGA
               </div>
               <div
+                className="hide-on-compact"
                 style={{
                   fontSize: '0.68rem',
                   color: 'var(--text-muted)',
@@ -218,7 +219,7 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
                   color: 'var(--navy-deep)',
                   fontSize: '0.72rem',
                   fontWeight: 700,
-                  maxWidth: '150px',
+                  maxWidth: 'min(110px, 28vw)',
                   cursor: 'pointer',
                   outline: 'none',
                 }}

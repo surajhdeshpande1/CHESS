@@ -87,7 +87,7 @@ export const Step3LiveMatches: React.FC<Step3LiveMatchesProps> = ({
       <div className="app-container no-print" style={{ paddingTop: '1.25rem', paddingBottom: '2.5rem' }}>
         {/* Top Arbiter Command Ribbon */}
         <div
-          className="card-clean"
+          className="card-clean responsive-card"
           style={{
             padding: '1.1rem 1.5rem',
             marginBottom: '1.25rem',
@@ -288,7 +288,7 @@ export const Step3LiveMatches: React.FC<Step3LiveMatchesProps> = ({
               type="button"
               disabled={!isRoundFinished}
               onClick={onAdvanceRound}
-              className={`btn ${isRoundFinished ? 'btn-primary-green' : 'btn-secondary-white'}`}
+              className={`btn ${isRoundFinished ? 'btn-primary-green' : 'btn-secondary-white'} mobile-full-btn`}
               style={{ padding: '0.55rem 1.4rem', fontSize: '0.88rem' }}
             >
               {isFinalRound ? (
@@ -747,11 +747,11 @@ export const Step3LiveMatches: React.FC<Step3LiveMatchesProps> = ({
 
         {/* Allocated Pairing Byes (if odd count of players) */}
         {byeBoards.length > 0 && (
-          <div className="card-clean" style={{ padding: '1rem', marginBottom: '1.75rem' }}>
+          <div className="card-clean responsive-card" style={{ padding: '1rem', marginBottom: '1.75rem' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--navy-deep)', marginBottom: '0.6rem' }}>
               Allocated Pairing Byes ({byeBoards.length})
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.6rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 240px), 1fr))', gap: '0.6rem' }}>
               {byeBoards.map((b) => {
                 const p = playerMap.get(b.whitePlayerId);
                 if (!p) return null;
@@ -766,6 +766,8 @@ export const Step3LiveMatches: React.FC<Step3LiveMatchesProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '0.4rem',
                     }}
                   >
                     <div>
@@ -786,6 +788,7 @@ export const Step3LiveMatches: React.FC<Step3LiveMatchesProps> = ({
 
         {/* Bottom Advance Action Bar */}
         <div
+          className="responsive-card"
           style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -794,9 +797,11 @@ export const Step3LiveMatches: React.FC<Step3LiveMatchesProps> = ({
             borderRadius: '8px',
             background: isRoundFinished ? 'var(--green-tint)' : 'var(--bg-secondary)',
             border: isRoundFinished ? '1.5px solid var(--green-border)' : '1px solid var(--navy-border-light)',
+            flexWrap: 'wrap',
+            gap: '1rem',
           }}
         >
-          <div>
+          <div style={{ maxWidth: '100%' }}>
             <div style={{ fontWeight: 700, fontSize: '0.92rem', color: isRoundFinished ? 'var(--green-deep)' : 'var(--navy-deep)' }}>
               {isRoundFinished
                 ? `Round ${tournament.currentRound} Complete! All ${totalMatches} Match Results Recorded.`
@@ -815,7 +820,7 @@ export const Step3LiveMatches: React.FC<Step3LiveMatchesProps> = ({
             type="button"
             disabled={!isRoundFinished}
             onClick={onAdvanceRound}
-            className={`btn ${isRoundFinished ? 'btn-primary-green' : 'btn-secondary-white'}`}
+            className={`btn ${isRoundFinished ? 'btn-primary-green' : 'btn-secondary-white'} mobile-full-btn`}
             style={{ padding: '0.65rem 1.6rem', fontSize: '0.9rem' }}
           >
             {isFinalRound ? (
