@@ -18,7 +18,7 @@ import { FindMyBoardModal } from './components/FindMyBoardModal';
 import { BulkCertificatesModal } from './components/BulkCertificatesModal';
 import { SupabaseSyncModal } from './components/SupabaseSyncModal';
 import { AdminCommandCenterModal } from './components/AdminCommandCenterModal';
-import { isAdminAuthenticated } from './lib/adminAuth';
+import { isAdminAuthenticated, logoutAdmin } from './lib/adminAuth';
 import { isSupabaseConfigured } from './lib/supabaseClient';
 import { saveTournamentToCloud } from './storage/supabaseSync';
 import {
@@ -66,7 +66,23 @@ export const App: React.FC = () => {
   });
 
   // View Mode: 'LANDING' -> 'AUTH' -> 'DASHBOARD' -> 'APP' -> 'ORGANIZER_HUB'
-  const [viewMode, setViewMode] = useState<'LANDING' | 'AUTH' | 'DASHBOARD' | 'APP' | 'ORGANIZER_HUB'>('LANDING');
+  // Auto-restores session so registered/signed-in arbiters never have to enter credentials on every visit
+  const [viewMode, setViewMode] = useState<'LANDING' | 'AUTH' | 'DASHBOARD' | 'APP' | 'ORGANIZER_HUB'>(() => {
+    const session = getActiveArbiterSession();
+    const admin = isAdminAuthenticated();
+    if (session || admin) {
+      try {
+        const savedMode = localStorage.getItem('chaturanga_last_view_mode_v1');
+        if (savedMode && ['DASHBOARD', 'APP', 'ORGANIZER_HUB'].includes(savedMode)) {
+          return savedMode as 'DASHBOARD' | 'APP' | 'ORGANIZER_HUB';
+        }
+      } catch {
+        // ignore
+      }
+      return 'DASHBOARD';
+    }
+    return 'LANDING';
+  });
 
   // Multi-Tournament Organizer Workspace State (Persisted under WORKSPACE_STORAGE_KEY)
   const [workspace, setWorkspace] = useState<OrganizerWorkspace>(() => {
@@ -259,14 +275,30 @@ export const App: React.FC = () => {
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
 
-  // HTML5 History & State Navigation Engine
+  // HTML5 History & State Navigation Engine with view persistence
   const navigateToView = (newMode: 'LANDING' | 'AUTH' | 'DASHBOARD' | 'APP' | 'ORGANIZER_HUB') => {
     setViewMode(newMode);
     try {
+      if (newMode !== 'LANDING' && newMode !== 'AUTH') {
+        localStorage.setItem('chaturanga_last_view_mode_v1', newMode);
+      }
       window.history.pushState({ viewMode: newMode, currentStep }, '', window.location.pathname);
     } catch (e) {
       // ignore
     }
+  };
+
+  // Universal Sign Out: Explicitly clears active credentials and returns to landing
+  const handleSignOut = () => {
+    logoutArbiter();
+    logoutAdmin();
+    setActiveArbiter(null);
+    try {
+      localStorage.removeItem('chaturanga_last_view_mode_v1');
+    } catch {
+      // ignore
+    }
+    navigateToView('LANDING');
   };
 
   const navigateToStep = (newStep: SequentialStep) => {
@@ -948,11 +980,8 @@ export const App: React.FC = () => {
       <LandingHeroView
         activeArbiter={activeArbiter}
         onProceedToAuth={() => navigateToView('AUTH')}
-        onEnterApp={() => navigateToView('AUTH')}
-        onSignOut={() => {
-          logoutArbiter();
-          setActiveArbiter(null);
-        }}
+        onEnterApp={() => navigateToView('DASHBOARD')}
+        onSignOut={handleSignOut}
         onInstantGuestAccess={(guest) => {
           setActiveArbiter(guest);
           navigateToView('DASHBOARD');
@@ -1031,11 +1060,7 @@ export const App: React.FC = () => {
           onOpenAdminConsole={() => setIsAdminModalOpen(true)}
           onBackToIntro={() => navigateToView('LANDING')}
           onOpenOrganizerHub={() => navigateToView('ORGANIZER_HUB')}
-          onSignOut={() => {
-            logoutArbiter();
-            setActiveArbiter(null);
-            navigateToView('LANDING');
-          }}
+          onSignOut={handleSignOut}
         />
         {commonModals}
       </>
@@ -1079,11 +1104,7 @@ export const App: React.FC = () => {
         onOpenCloudSync={() => setIsSupabaseModalOpen(true)}
         onOpenAdminConsole={() => setIsAdminModalOpen(true)}
         activeArbiter={activeArbiter}
-        onSignOut={() => {
-          logoutArbiter();
-          setActiveArbiter(null);
-          navigateToView('LANDING');
-        }}
+        onSignOut={handleSignOut}
         onOpenOrganizerHub={() => navigateToView('ORGANIZER_HUB')}
         allTournaments={tournamentSummaries}
         activeTournamentId={workspace.activeTournamentId}

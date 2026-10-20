@@ -1,6 +1,12 @@
 import { getSupabaseClient, isSupabaseConfigured } from '../lib/supabaseClient';
 import { TournamentVault } from '../lib/tournamentVaultAndFeatures';
-import { ArbiterProfile } from '../lib/arbiterAuth';
+import {
+  ArbiterProfile,
+  loginOfficial,
+  getRegisteredArbiters,
+  saveRegisteredArbiters,
+  setActiveArbiterSession,
+} from '../lib/arbiterAuth';
 
 export interface CloudTournamentSummary {
   id: string;
@@ -235,7 +241,7 @@ export async function setTournamentArchivedInCloud(
 }
 
 /**
- * Sync Arbiter Profile to Supabase
+ * Sync Arbiter Profile to Supabase with credentials for multi-device session continuity
  */
 export async function syncArbiterToCloud(
   arbiter: ArbiterProfile
@@ -255,6 +261,7 @@ export async function syncArbiterToCloud(
         federation: arbiter.federation,
         fide_id: arbiter.fideId || null,
         organization_name: arbiter.organizationName || null,
+        password_hash: arbiter.passwordHash || null,
         is_verified: true,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'id' });
@@ -265,6 +272,80 @@ export async function syncArbiterToCloud(
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Arbiter sync failed' };
+  }
+}
+
+/**
+ * Robust sign-in: Checks local vault first, then queries Supabase cloud database
+ * so registered accounts persist across browser sessions, devices, and reloads.
+ */
+export async function loginOfficialWithCloudFallback(
+  emailOrId: string,
+  password: string
+): Promise<{ success: boolean; error?: string; profile?: ArbiterProfile }> {
+  // 1. Try local authentication first (instantaneous)
+  const localRes = loginOfficial(emailOrId, password);
+  if (localRes.success && localRes.profile) {
+    // Asynchronously update cloud profile
+    syncArbiterToCloud(localRes.profile).catch(() => {});
+    return localRes;
+  }
+
+  // 2. Fall back to Supabase database lookup
+  const client = getSupabaseClient();
+  if (!client) {
+    return localRes;
+  }
+
+  try {
+    const query = emailOrId.trim().toLowerCase();
+    const hash = btoa(password);
+
+    const { data, error } = await client
+      .from('arbiters')
+      .select('*')
+      .or(`email.ilike.${query},fide_id.ilike.${query}`)
+      .limit(1);
+
+    if (error || !data || data.length === 0) {
+      return {
+        success: false,
+        error: 'Invalid credentials. If you are newly conducting tournaments, please register your profile or continue as an Organizer.',
+      };
+    }
+
+    const row = data[0];
+    if (row.password_hash && row.password_hash !== hash) {
+      return {
+        success: false,
+        error: 'Incorrect password. Please verify your security password and try again.',
+      };
+    }
+
+    const profile: ArbiterProfile = {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      roleType: row.role_type || 'ORGANIZER',
+      title: row.title || 'TOURNAMENT_DIRECTOR',
+      federation: row.federation || 'Club Open',
+      organizationName: row.organization_name || undefined,
+      fideId: row.fide_id || undefined,
+      passwordHash: row.password_hash || hash,
+      registeredAtISO: row.registered_at || new Date().toISOString(),
+    };
+
+    // Cache to local registered officials & set active session
+    const existing = getRegisteredArbiters();
+    if (!existing.some((a) => a.id === profile.id || a.email.toLowerCase() === profile.email.toLowerCase())) {
+      saveRegisteredArbiters([...existing, profile]);
+    }
+    setActiveArbiterSession(profile);
+
+    return { success: true, profile };
+  } catch (err) {
+    console.warn('Cloud login error:', err);
+    return localRes;
   }
 }
 
@@ -292,7 +373,7 @@ export async function listAllArbitersFromCloud(): Promise<ArbiterProfile[]> {
       organizationName: d.organization_name || undefined,
       email: d.email || '',
       fideId: d.fide_id || undefined,
-      passwordHash: '',
+      passwordHash: d.password_hash || '',
       registeredAtISO: d.registered_at || new Date().toISOString(),
     }));
   } catch (err) {

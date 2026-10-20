@@ -11,7 +11,10 @@ interface LandingHeroViewProps {
 }
 
 export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
+  activeArbiter,
   onProceedToAuth,
+  onEnterApp,
+  onSignOut,
 }) => {
   const [isExiting, setIsExiting] = useState(false);
   const [progressPercent, setProgressPercent] = useState<number>(0);
@@ -50,6 +53,7 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
   }, []);
 
   const currentVideoSrc = isMobile ? '/portrait.mp4' : '/landing.mp4';
+  const targetDestination = activeArbiter ? onEnterApp : onProceedToAuth;
 
   // Ensure seamless, uninterrupted autoplay when mounted or when source changes
   useEffect(() => {
@@ -64,16 +68,16 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
     }
   }, [currentVideoSrc]);
 
-  // Keyboard shortcut: Pressing Enter or Escape skips directly to Sign In
+  // Keyboard shortcut: Pressing Enter or Escape skips directly to destination
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' || e.key === 'Enter') {
-        handleAction(onProceedToAuth);
+        handleAction(targetDestination);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onProceedToAuth]);
+  }, [targetDestination]);
 
   const handleTimeUpdate = () => {
     if (!videoRef.current) return;
@@ -121,7 +125,7 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
         controls={false}
         disablePictureInPicture
         onTimeUpdate={handleTimeUpdate}
-        onEnded={() => handleAction(onProceedToAuth)}
+        onEnded={() => handleAction(targetDestination)}
         style={{
           position: 'absolute',
           inset: 0,
@@ -135,47 +139,108 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
         }}
       />
 
-      {/* Discrete Skip to Sign In CTA button (bottom right) */}
-      <button
-        type="button"
-        onClick={() => handleAction(onProceedToAuth)}
-        style={{
-          position: 'absolute',
-          bottom: 'max(20px, env(safe-area-inset-bottom, 20px))',
-          right: 'max(20px, env(safe-area-inset-right, 20px))',
-          background: 'rgba(15, 23, 42, 0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          color: '#ffffff',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          borderRadius: '24px',
-          padding: '8px 18px',
-          fontSize: '0.82rem',
-          fontWeight: 700,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          cursor: 'pointer',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
-          transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-          zIndex: 20,
-          letterSpacing: '0.02em',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = '#10b981';
-          e.currentTarget.style.transform = 'translateY(-2px)';
-          e.currentTarget.style.boxShadow = '0 12px 28px rgba(16, 185, 129, 0.4)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(15, 23, 42, 0.85)';
-          e.currentTarget.style.transform = 'translateY(0px)';
-          e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.25)';
-        }}
-        title="Skip intro and go directly to Sign In"
-      >
-        <span>Skip to Sign In</span>
-        <ArrowRight size={14} />
-      </button>
+      {/* Discrete CTA buttons (bottom right) */}
+      {activeArbiter ? (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 'max(20px, env(safe-area-inset-bottom, 20px))',
+            right: 'max(20px, env(safe-area-inset-right, 20px))',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            zIndex: 20,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => handleAction(onEnterApp)}
+            style={{
+              background: '#10b981',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              color: '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '24px',
+              padding: '8px 18px',
+              fontSize: '0.84rem',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              letterSpacing: '0.02em',
+            }}
+            title={`Welcome back, ${activeArbiter.name}. Continue to Dashboard`}
+          >
+            <span>Continue to Dashboard ({activeArbiter.name.split(' ')[0]})</span>
+            <ArrowRight size={14} />
+          </button>
+
+          <button
+            type="button"
+            onClick={onSignOut}
+            style={{
+              background: 'rgba(15, 23, 42, 0.85)',
+              backdropFilter: 'blur(12px)',
+              color: '#f87171',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: '24px',
+              padding: '8px 14px',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            title="Sign out of current account"
+          >
+            Sign Out
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => handleAction(onProceedToAuth)}
+          style={{
+            position: 'absolute',
+            bottom: 'max(20px, env(safe-area-inset-bottom, 20px))',
+            right: 'max(20px, env(safe-area-inset-right, 20px))',
+            background: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            color: '#ffffff',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '24px',
+            padding: '8px 18px',
+            fontSize: '0.82rem',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+            zIndex: 20,
+            letterSpacing: '0.02em',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#10b981';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 12px 28px rgba(16, 185, 129, 0.4)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(15, 23, 42, 0.85)';
+            e.currentTarget.style.transform = 'translateY(0px)';
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.25)';
+          }}
+          title="Skip intro and go directly to Sign In"
+        >
+          <span>Skip to Sign In</span>
+          <ArrowRight size={14} />
+        </button>
+      )}
 
       {/* Subtle Progress Bar along bottom edge */}
       <div

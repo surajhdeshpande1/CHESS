@@ -22,6 +22,7 @@ import {
   registerOfficial,
   createGuestOrganizerSession,
 } from '../lib/arbiterAuth';
+import { syncArbiterToCloud, loginOfficialWithCloudFallback } from '../storage/supabaseSync';
 
 interface ArbiterAuthViewProps {
   onSuccess: (arbiter: ArbiterProfile) => void;
@@ -67,19 +68,28 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
     setErrorMessage(null);
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setIsSubmitting(true);
 
-    const result = loginOfficial(loginIdentifier, loginPassword);
-    if (result.success && result.profile) {
-      onSuccess(result.profile);
-    } else {
-      setErrorMessage(result.error || 'Authentication failed. Please verify credentials.');
+    try {
+      const result = await loginOfficialWithCloudFallback(loginIdentifier, loginPassword);
+      if (result.success && result.profile) {
+        onSuccess(result.profile);
+      } else {
+        setErrorMessage(result.error || 'Authentication failed. Please verify credentials.');
+      }
+    } catch {
+      setErrorMessage('Authentication error. Please check your credentials and retry.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -88,26 +98,34 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
       return;
     }
 
-    const result = registerOfficial({
-      name: regName.trim(),
-      email: regEmail.trim(),
-      password: regPassword,
-      roleType: roleCategory,
-      title: regTitle,
-      federation: regFederation.trim(),
-      organizationName: roleCategory === 'ORGANIZER' ? regOrgName.trim() : undefined,
-      fideId: roleCategory === 'CERTIFIED_ARBITER' ? regFideId.trim() || undefined : undefined,
-    });
+    setIsSubmitting(true);
+    try {
+      const result = registerOfficial({
+        name: regName.trim(),
+        email: regEmail.trim(),
+        password: regPassword,
+        roleType: roleCategory,
+        title: regTitle,
+        federation: regFederation.trim(),
+        organizationName: roleCategory === 'ORGANIZER' ? regOrgName.trim() : undefined,
+        fideId: roleCategory === 'CERTIFIED_ARBITER' ? regFideId.trim() || undefined : undefined,
+      });
 
-    if (result.success && result.profile) {
-      onSuccess(result.profile);
-    } else {
-      setErrorMessage(result.error || 'Registration failed.');
+      if (result.success && result.profile) {
+        // Automatically sync to cloud database so credentials persist on all devices & reloads
+        syncArbiterToCloud(result.profile).catch((err) => console.warn('Cloud sync error:', err));
+        onSuccess(result.profile);
+      } else {
+        setErrorMessage(result.error || 'Registration failed.');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleQuickGuestOrganizer = () => {
     const guest = createGuestOrganizerSession('Tournament Organizer', 'Club Open');
+    syncArbiterToCloud(guest).catch(() => {});
     onSuccess(guest);
   };
 
@@ -371,6 +389,7 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="btn btn-primary-navy"
               style={{
                 width: '100%',
@@ -378,9 +397,11 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
                 fontSize: '0.92rem',
                 fontWeight: 700,
                 marginBottom: '0.75rem',
+                opacity: isSubmitting ? 0.75 : 1,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
               }}
             >
-              <span>Sign In as Tournament Official</span>
+              <span>{isSubmitting ? 'Authenticating & Verifying...' : 'Sign In as Tournament Official'}</span>
               <ArrowRight size={16} />
             </button>
 
@@ -701,16 +722,21 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="btn btn-primary-green"
               style={{
                 width: '100%',
                 padding: '0.75rem 1.5rem',
                 fontSize: '0.92rem',
                 fontWeight: 700,
+                opacity: isSubmitting ? 0.75 : 1,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
               }}
             >
               <span>
-                {roleCategory === 'CERTIFIED_ARBITER'
+                {isSubmitting
+                  ? 'Creating Profile & Syncing...'
+                  : roleCategory === 'CERTIFIED_ARBITER'
                   ? 'Register Official Arbiter Profile'
                   : 'Register Tournament Director Profile'}
               </span>
