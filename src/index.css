@@ -53,6 +53,8 @@ html, body {
   background-color: var(--bg-page);
   color: var(--text-main);
   min-height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -528,6 +530,29 @@ input:focus, select:focus, textarea:focus {
   }
   .show-on-mobile {
     display: flex !important;
+  }
+}
+
+/* 2.1 Stepper Responsive Layout (Prevents header clipping on laptop and medium screens <= 1400px) */
+.stepper-timeline-desktop {
+  display: flex !important;
+}
+.stepper-timeline-subrow {
+  display: none !important;
+}
+
+@media (max-width: 1400px) and (min-width: 769px) {
+  .stepper-timeline-desktop {
+    display: none !important;
+  }
+  .stepper-timeline-subrow {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 1440px) {
+  .hide-on-compact {
+    display: none !important;
   }
 }
 

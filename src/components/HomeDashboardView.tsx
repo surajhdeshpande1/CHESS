@@ -4,6 +4,7 @@ import {
   Sparkles,
   FolderOpen,
   ArrowRight,
+  ArrowLeft,
   ShieldCheck,
   Play,
   RotateCcw,
@@ -27,6 +28,7 @@ interface HomeDashboardViewProps {
   onLaunchDemoTournament: () => void;
   onImportDocument: () => void;
   onOpenCloudSync?: () => void;
+  onBackToIntro?: () => void;
   onSignOut: () => void;
 }
 
@@ -38,6 +40,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
   onLaunchDemoTournament,
   onImportDocument,
   onOpenCloudSync,
+  onBackToIntro,
   onSignOut,
 }) => {
   const hasExistingTournament = tournament.players.length > 0 || Boolean(tournament.name);
@@ -72,8 +75,29 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
             flexWrap: 'wrap',
           }}
         >
-          {/* Brand Crest */}
+          {/* Brand Crest & Back Button */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            {onBackToIntro && (
+              <button
+                type="button"
+                onClick={onBackToIntro}
+                className="btn btn-secondary-white"
+                style={{
+                  padding: '0.35rem 0.65rem',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  minHeight: '34px',
+                }}
+                title="Return to Intro Video"
+              >
+                <ArrowLeft size={14} />
+                <span>Intro</span>
+              </button>
+            )}
+
             <div
               style={{
                 width: '34px',

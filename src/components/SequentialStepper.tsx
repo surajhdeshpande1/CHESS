@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, RotateCcw, Printer, Download, Sparkles, Database } from 'lucide-react';
+import { Check, RotateCcw, Printer, Download, Database, ArrowLeft } from 'lucide-react';
 import { TournamentState } from '../lib/fideSwissEngine';
 import { ArbiterProfile } from '../lib/arbiterAuth';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
@@ -22,6 +22,7 @@ interface SequentialStepperProps {
   onOpenPrint: () => void;
   onExportTRF: () => void;
   onGoHome?: () => void;
+  onGoBack?: () => void;
   onOpenCloudSync?: () => void;
   activeArbiter?: ArbiterProfile | null;
   onSignOut?: () => void;
@@ -36,6 +37,7 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
   onOpenPrint,
   onExportTRF,
   onGoHome,
+  onGoBack,
   onOpenCloudSync,
   activeArbiter,
   onSignOut,
@@ -93,90 +95,120 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
         position: 'sticky',
         top: 0,
         zIndex: 50,
+        width: '100%',
+        maxWidth: '100vw',
+        boxSizing: 'border-box',
       }}
     >
       {/* Top Main Navigation Row */}
       <div
         style={{
-          maxWidth: '1280px',
+          width: '100%',
+          maxWidth: '1440px',
           margin: '0 auto',
-          padding: '0.75rem 1rem',
+          padding: '0.5rem 0.75rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '1rem',
+          gap: '0.5rem',
+          boxSizing: 'border-box',
         }}
       >
-        {/* Left: Elegant Crest & Title */}
-        <div
-          onClick={onGoHome}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.65rem',
-            flexShrink: 0,
-            cursor: onGoHome ? 'pointer' : 'default',
-          }}
-          title={onGoHome ? 'Return to Welcome Dashboard' : undefined}
-        >
+        {/* Left: Prominent Back Button & Elegant Brand Crest */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0 }}>
+          {onGoBack && (
+            <button
+              type="button"
+              onClick={onGoBack}
+              className="btn btn-secondary-white"
+              style={{
+                padding: '0.35rem 0.65rem',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                color: 'var(--navy-deep)',
+                minHeight: '34px',
+                borderRadius: '6px',
+                border: '1px solid var(--navy-border-light)',
+              }}
+              title="Go back to previous step or dashboard"
+            >
+              <ArrowLeft size={14} />
+              <span>Back</span>
+            </button>
+          )}
+
           <div
+            onClick={onGoHome}
             style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '6px',
-              background: 'var(--navy-deep)',
-              color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.2rem',
-              boxShadow: '0 2px 4px rgba(10, 25, 47, 0.12)',
-              flexShrink: 0,
+              gap: '0.55rem',
+              cursor: onGoHome ? 'pointer' : 'default',
             }}
+            title={onGoHome ? 'Return to Welcome Dashboard' : undefined}
           >
-            ♔
-          </div>
-          <div style={{ minWidth: 0 }}>
             <div
               style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: '0.98rem',
-                fontWeight: 800,
-                color: 'var(--navy-deep)',
-                letterSpacing: '0.06em',
-                lineHeight: 1.1,
-                whiteSpace: 'nowrap',
+                width: '32px',
+                height: '32px',
+                borderRadius: '6px',
+                background: 'var(--navy-deep)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.15rem',
+                boxShadow: '0 2px 4px rgba(10, 25, 47, 0.12)',
+                flexShrink: 0,
               }}
             >
-              CHATURANGA
+              ♔
             </div>
-            <div
-              style={{
-                fontSize: '0.7rem',
-                color: 'var(--text-muted)',
-                fontFamily: 'var(--font-sans)',
-                letterSpacing: '0.02em',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: '140px',
-              }}
-            >
-              {tournament.name || 'FIDE Dutch'}
+            <div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '0.94rem',
+                  fontWeight: 900,
+                  color: 'var(--navy-deep)',
+                  letterSpacing: '0.06em',
+                  lineHeight: 1.1,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                CHATURANGA
+              </div>
+              <div
+                style={{
+                  fontSize: '0.68rem',
+                  color: 'var(--text-muted)',
+                  fontFamily: 'var(--font-sans)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '120px',
+                }}
+              >
+                {tournament.name || 'FIDE Dutch'}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Center: Desktop 5-Step Sequential Timeline (Hidden on Mobile) */}
+        {/* Center: Desktop 5-Step Sequential Timeline (Inline on wide >= 1221px screens) */}
         <nav
-          className="hide-on-mobile"
+          className="stepper-timeline-desktop hide-on-mobile"
           style={{
             alignItems: 'center',
-            gap: '0.35rem',
+            gap: '0.25rem',
             background: 'var(--bg-subtle)',
             padding: '0.25rem 0.35rem',
             borderRadius: '8px',
             border: '1px solid var(--navy-border-light)',
+            flexShrink: 0,
           }}
         >
           {steps.map((s, idx) => {
@@ -205,12 +237,12 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.35rem',
-                    padding: '0.4rem 0.75rem',
+                    padding: '0.35rem 0.65rem',
                     borderRadius: '5px',
                     border: 'none',
                     background: isActive ? 'var(--navy-deep)' : 'transparent',
                     color: isActive ? '#ffffff' : canClick ? 'var(--text-main)' : 'var(--text-light)',
-                    fontSize: '0.8rem',
+                    fontSize: '0.78rem',
                     fontWeight: isActive ? 700 : 500,
                     fontFamily: 'var(--font-sans)',
                     cursor: canClick ? 'pointer' : 'not-allowed',
@@ -218,11 +250,11 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
                   }}
                 >
                   {s.isCompleted && !isActive ? (
-                    <Check size={12} color="var(--green-primary)" strokeWidth={3} />
+                    <Check size={11} color="var(--green-primary)" strokeWidth={3} />
                   ) : (
                     <span
                       style={{
-                        fontSize: '0.7rem',
+                        fontSize: '0.68rem',
                         opacity: isActive ? 0.9 : 0.6,
                         fontFamily: 'var(--font-mono)',
                       }}
@@ -237,18 +269,27 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
           })}
         </nav>
 
-        {/* Desktop Actions Bar (Hidden on Mobile) */}
-        <div className="hide-on-mobile" style={{ alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+        {/* Desktop Actions Bar: Perfectly constrained so it fits on all laptop screens without cutting off */}
+        <div
+          className="hide-on-mobile"
+          style={{
+            alignItems: 'center',
+            gap: '0.35rem',
+            flexShrink: 0,
+            maxWidth: '100%',
+          }}
+        >
           {/* Subtle History / Ledger Toggle */}
           <button
             type="button"
             onClick={onOpenActivityDrawer}
             className="btn btn-minimal"
-            style={{ fontSize: '0.78rem', padding: '0.4rem 0.65rem' }}
+            style={{ fontSize: '0.76rem', padding: '0.35rem 0.5rem', minHeight: '34px' }}
             title="Activity Log & Time-Machine Undo"
           >
             <RotateCcw size={13} />
-            <span>History ({auditCount})</span>
+            <span className="hide-on-compact">History </span>
+            <span>({auditCount})</span>
           </button>
 
           {/* Clean Export / Print */}
@@ -256,7 +297,7 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
             type="button"
             onClick={onOpenPrint}
             className="btn btn-secondary-white"
-            style={{ fontSize: '0.78rem', padding: '0.4rem 0.75rem' }}
+            style={{ fontSize: '0.76rem', padding: '0.35rem 0.55rem', minHeight: '34px' }}
             title="Print Current View"
           >
             <Printer size={13} />
@@ -268,7 +309,7 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
               type="button"
               onClick={onExportTRF}
               className="btn btn-secondary-white"
-              style={{ fontSize: '0.78rem', padding: '0.4rem 0.75rem' }}
+              style={{ fontSize: '0.76rem', padding: '0.35rem 0.55rem', minHeight: '34px' }}
               title="Download Official FIDE TRF16 File"
             >
               <Download size={13} />
@@ -283,7 +324,8 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
               className="btn btn-secondary-white"
               style={{
                 fontSize: '0.76rem',
-                padding: '0.4rem 0.75rem',
+                padding: '0.35rem 0.55rem',
+                minHeight: '34px',
                 color: isSupabaseConfigured() ? 'var(--green-deep)' : 'var(--navy-deep)',
                 borderColor: isSupabaseConfigured() ? 'var(--green-border)' : 'var(--navy-border-light)',
                 background: isSupabaseConfigured() ? 'var(--green-tint)' : '#ffffff',
@@ -291,7 +333,7 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
               title="Supabase Cloud Database & Live Spectator Sync"
             >
               <Database size={13} color={isSupabaseConfigured() ? 'var(--green-primary)' : 'var(--navy-royal)'} />
-              <span>{isSupabaseConfigured() ? 'Cloud Live' : 'Cloud Sync'}</span>
+              <span>{isSupabaseConfigured() ? 'Live' : 'Cloud'}</span>
             </button>
           )}
 
@@ -300,30 +342,34 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem',
+                gap: '0.3rem',
                 borderLeft: '1px solid var(--navy-border-light)',
-                paddingLeft: '0.5rem',
+                paddingLeft: '0.35rem',
               }}
             >
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.35rem',
-                  padding: '0.35rem 0.65rem',
+                  gap: '0.25rem',
+                  padding: '0.35rem 0.5rem',
                   background: activeArbiter.roleType === 'CERTIFIED_ARBITER' ? 'var(--navy-tint)' : 'var(--green-tint)',
                   borderRadius: '4px',
                   border: activeArbiter.roleType === 'CERTIFIED_ARBITER' ? '1px solid var(--navy-border)' : '1px solid var(--green-border)',
-                  fontSize: '0.74rem',
+                  fontSize: '0.72rem',
                   fontWeight: 700,
                   color: activeArbiter.roleType === 'CERTIFIED_ARBITER' ? 'var(--navy-deep)' : 'var(--green-deep)',
+                  maxWidth: '115px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}
                 title={`${activeArbiter.roleType === 'CERTIFIED_ARBITER' ? 'Official FIDE Arbiter' : 'Tournament Director / Organizer'}: ${activeArbiter.name}`}
               >
                 <span>
                   {activeArbiter.roleType === 'CERTIFIED_ARBITER'
                     ? `⚖ ${activeArbiter.title} ${activeArbiter.name.split(' ')[0]}`
-                    : `🏛 ${activeArbiter.title === 'TOURNAMENT_DIRECTOR' ? 'Director' : 'Organizer'} ${activeArbiter.name.split(' ')[0]}`}
+                    : `🏛 ${activeArbiter.title === 'TOURNAMENT_DIRECTOR' ? 'Dir' : 'Org'} ${activeArbiter.name.split(' ')[0]}`}
                 </span>
               </div>
 
@@ -332,7 +378,7 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
                   type="button"
                   onClick={onSignOut}
                   className="btn btn-minimal"
-                  style={{ fontSize: '0.72rem', padding: '0.35rem 0.5rem' }}
+                  style={{ fontSize: '0.72rem', padding: '0.35rem 0.45rem', minHeight: '34px' }}
                   title="Sign out of Arbiter account"
                 >
                   Exit
@@ -342,7 +388,7 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
           )}
         </div>
 
-        {/* Mobile Quick Top Actions (Visible Only on Mobile) */}
+        {/* Mobile Quick Top Actions (Visible Only on Mobile <= 768px) */}
         <div className="show-on-mobile" style={{ alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
           {onOpenCloudSync && (
             <button
@@ -389,7 +435,89 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
         </div>
       </div>
 
-      {/* Mobile Dedicated Horizontal Steps Nav (Visible Only on Mobile) */}
+      {/* Sub-row Timeline for Laptop & Medium Screens (769px to 1220px) so nothing ever gets cut off */}
+      <div
+        className="stepper-timeline-subrow"
+        style={{
+          borderTop: '1px solid var(--navy-border-light)',
+          background: 'var(--bg-subtle)',
+          padding: '0.35rem 1rem',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
+        <nav
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            overflowX: 'auto',
+            maxWidth: '100%',
+          }}
+        >
+          {steps.map((s, idx) => {
+            const isActive = currentStep === s.id;
+            const canClick = s.isAvailable;
+
+            return (
+              <React.Fragment key={s.id}>
+                {idx > 0 && (
+                  <span
+                    style={{
+                      color: 'var(--navy-border)',
+                      fontSize: '0.7rem',
+                      padding: '0 0.1rem',
+                      userSelect: 'none',
+                    }}
+                  >
+                    /
+                  </span>
+                )}
+                <button
+                  type="button"
+                  disabled={!canClick}
+                  onClick={() => canClick && onSelectStep(s.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '0.35rem 0.65rem',
+                    borderRadius: '5px',
+                    border: 'none',
+                    background: isActive ? 'var(--navy-deep)' : '#ffffff',
+                    color: isActive ? '#ffffff' : canClick ? 'var(--text-main)' : 'var(--text-light)',
+                    fontSize: '0.78rem',
+                    fontWeight: isActive ? 700 : 500,
+                    fontFamily: 'var(--font-sans)',
+                    cursor: canClick ? 'pointer' : 'not-allowed',
+                    transition: 'all 0.15s ease',
+                    boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  }}
+                >
+                  {s.isCompleted && !isActive ? (
+                    <Check size={11} color="var(--green-primary)" strokeWidth={3} />
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: '0.68rem',
+                        opacity: isActive ? 0.9 : 0.6,
+                        fontFamily: 'var(--font-mono)',
+                      }}
+                    >
+                      {s.stepNumber}
+                    </span>
+                  )}
+                  <span>{s.title}</span>
+                </button>
+              </React.Fragment>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Mobile Dedicated Horizontal Steps Nav (Visible Only on Mobile <= 768px) */}
       <div
         className="show-on-mobile"
         style={{
@@ -397,6 +525,7 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
           background: 'var(--bg-subtle)',
           padding: '0.35rem 0.5rem',
           width: '100%',
+          boxSizing: 'border-box',
         }}
       >
         <nav

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, Search, Trophy, TrendingUp, TrendingDown, Eye } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Search, Trophy, TrendingUp, TrendingDown, Eye } from 'lucide-react';
 import { CandidatePlayer, TournamentState } from '../lib/fideSwissEngine';
 import { PlayerMatchDetailsModal } from './PlayerMatchDetailsModal';
 
@@ -8,11 +8,13 @@ interface LiveStandingsViewProps {
   onOpenPrizes?: () => void;
   onOpenCertificates?: () => void;
   onProceedToNextRound?: () => void;
+  onGoBack?: () => void;
 }
 
 export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
   tournament,
   onProceedToNextRound,
+  onGoBack,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState<CandidatePlayer | null>(null);
@@ -77,7 +79,20 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+          {onGoBack && (
+            <button
+              type="button"
+              onClick={onGoBack}
+              className="btn btn-secondary-white"
+              style={{ fontSize: '0.82rem', padding: '0.45rem 0.85rem', fontWeight: 600 }}
+              title="Return to Active Round Matches"
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Matches</span>
+            </button>
+          )}
+
           <div style={{ position: 'relative', width: '220px' }}>
             <Search
               size={13}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, Clock, ChevronDown, ChevronUp, Zap, Shield, Flame } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Clock, ChevronDown, ChevronUp, Zap, Shield, Flame } from 'lucide-react';
 import { EligibilityRules, TournamentState } from '../lib/fideSwissEngine';
 
 interface Step1CreateTournamentProps {
@@ -15,6 +15,7 @@ interface Step1CreateTournamentProps {
     newTimeControlName?: string
   ) => void;
   onProceedToPlayers: () => void;
+  onGoBack?: () => void;
 }
 
 interface TimeControlPreset {
@@ -128,6 +129,7 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
   tournament,
   onUpdateRules,
   onProceedToPlayers,
+  onGoBack,
 }) => {
   const [name, setName] = useState(tournament.name || '');
   const [city, setCity] = useState(tournament.city || '');
@@ -206,6 +208,28 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
 
   return (
     <div style={{ maxWidth: '780px', margin: '1.25rem auto 2.5rem', padding: '0 1.25rem' }}>
+      {/* Back to Dashboard Navigation */}
+      {onGoBack && (
+        <button
+          type="button"
+          onClick={onGoBack}
+          className="btn btn-secondary-white"
+          style={{
+            marginBottom: '1rem',
+            padding: '0.4rem 0.75rem',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+          }}
+          title="Return to Arbiter Dashboard"
+        >
+          <ArrowLeft size={14} />
+          <span>Back to Dashboard</span>
+        </button>
+      )}
+
       {/* Title Header */}
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <h2

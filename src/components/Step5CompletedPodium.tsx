@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Printer, RotateCcw } from 'lucide-react';
+import { Download, Printer, RotateCcw, ArrowLeft } from 'lucide-react';
 import { CandidatePlayer, TournamentState } from '../lib/fideSwissEngine';
 import { PlayerMatchDetailsModal } from './PlayerMatchDetailsModal';
 
@@ -10,6 +10,7 @@ interface Step5CompletedPodiumProps {
   onOpenPrizes?: () => void;
   onOpenCertificates?: () => void;
   onRestartNewTournament: () => void;
+  onGoBack?: () => void;
 }
 
 export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
@@ -17,6 +18,7 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
   onExportTRF,
   onOpenPrint,
   onRestartNewTournament,
+  onGoBack,
 }) => {
   const [selectedPlayer, setSelectedPlayer] = useState<CandidatePlayer | null>(null);
 
@@ -80,6 +82,19 @@ export const Step5CompletedPodium: React.FC<Step5CompletedPodiumProps> = ({
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+          {onGoBack && (
+            <button
+              type="button"
+              onClick={onGoBack}
+              className="btn btn-secondary-white"
+              style={{ fontSize: '0.82rem', padding: '0.45rem 1rem', fontWeight: 600 }}
+              title="Return to Final Standings"
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Standings</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={onOpenPrint}

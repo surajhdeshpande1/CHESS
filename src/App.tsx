@@ -111,6 +111,139 @@ export const App: React.FC = () => {
   const [isCertificatesModalOpen, setIsCertificatesModalOpen] = useState(false);
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
 
+  // HTML5 History & State Navigation Engine
+  const navigateToView = (newMode: 'LANDING' | 'AUTH' | 'DASHBOARD' | 'APP') => {
+    setViewMode(newMode);
+    try {
+      window.history.pushState({ viewMode: newMode, currentStep }, '', window.location.pathname);
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  const navigateToStep = (newStep: SequentialStep) => {
+    setCurrentStep(newStep);
+    try {
+      window.history.pushState({ viewMode, currentStep: newStep }, '', window.location.pathname);
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  // Universal In-App & Browser Back Button Resolver
+  const handleGoBack = () => {
+    // 1. If any modal or drawer is open, dismiss it first
+    if (isActivityDrawerOpen) {
+      setIsActivityDrawerOpen(false);
+      return;
+    }
+    if (isIntegrityModalOpen) {
+      setIsIntegrityModalOpen(false);
+      return;
+    }
+    if (xrayBoard !== null) {
+      setXrayBoard(null);
+      return;
+    }
+    if (isPrizeModalOpen) {
+      setIsPrizeModalOpen(false);
+      return;
+    }
+    if (isFindBoardModalOpen) {
+      setIsFindBoardModalOpen(false);
+      return;
+    }
+    if (isCertificatesModalOpen) {
+      setIsCertificatesModalOpen(false);
+      return;
+    }
+    if (isSupabaseModalOpen) {
+      setIsSupabaseModalOpen(false);
+      return;
+    }
+
+    // 2. Step and View Hierarchy
+    if (viewMode === 'APP') {
+      if (currentStep === 'final_results') {
+        navigateToStep('standings');
+      } else if (currentStep === 'standings') {
+        navigateToStep('round_matches');
+      } else if (currentStep === 'round_matches') {
+        if (tournament.currentRound === 1 && tournament.rounds.length <= 1) {
+          navigateToStep('roster_entry');
+        } else {
+          navigateToView('DASHBOARD');
+        }
+      } else if (currentStep === 'roster_entry') {
+        navigateToStep('create_tournament');
+      } else if (currentStep === 'create_tournament') {
+        navigateToView('DASHBOARD');
+      }
+    } else if (viewMode === 'DASHBOARD') {
+      navigateToView('LANDING');
+    } else if (viewMode === 'AUTH') {
+      navigateToView('LANDING');
+    }
+  };
+
+  // Browser Native History Popstate Listener (Hardware & Browser Back Button)
+  useEffect(() => {
+    try {
+      if (!window.history.state) {
+        window.history.replaceState({ viewMode, currentStep }, '', window.location.pathname);
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    const handlePopState = (e: PopStateEvent) => {
+      // If modal is open, close it without jumping screens
+      if (
+        isActivityDrawerOpen ||
+        isIntegrityModalOpen ||
+        xrayBoard !== null ||
+        isPrizeModalOpen ||
+        isFindBoardModalOpen ||
+        isCertificatesModalOpen ||
+        isSupabaseModalOpen
+      ) {
+        setIsActivityDrawerOpen(false);
+        setIsIntegrityModalOpen(false);
+        setXrayBoard(null);
+        setIsPrizeModalOpen(false);
+        setIsFindBoardModalOpen(false);
+        setIsCertificatesModalOpen(false);
+        setIsSupabaseModalOpen(false);
+        return;
+      }
+
+      if (e.state) {
+        if (e.state.viewMode) {
+          setViewMode(e.state.viewMode);
+        }
+        if (e.state.currentStep) {
+          setCurrentStep(e.state.currentStep);
+        }
+      } else {
+        handleGoBack();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [
+    viewMode,
+    currentStep,
+    isActivityDrawerOpen,
+    isIntegrityModalOpen,
+    xrayBoard,
+    isPrizeModalOpen,
+    isFindBoardModalOpen,
+    isCertificatesModalOpen,
+    isSupabaseModalOpen,
+    tournament,
+  ]);
+
   // Triple-Redundancy Persistent Storage & Background Supabase Sync
   useEffect(() => {
     try {
@@ -337,7 +470,7 @@ export const App: React.FC = () => {
       );
 
       setVault(updatedVault);
-      setCurrentStep('round_matches');
+      navigateToStep('round_matches');
     } catch (err) {
       alert('Pairing error: ' + err);
     }
@@ -433,7 +566,7 @@ export const App: React.FC = () => {
         );
 
         setVault(updatedVault);
-        setCurrentStep('round_matches');
+        navigateToStep('round_matches');
       } catch (err) {
         alert('Pairing error: ' + err);
       }
@@ -454,7 +587,7 @@ export const App: React.FC = () => {
 
       setVault(updatedVault);
       confetti({ particleCount: 160, spread: 80, origin: { y: 0.6 } });
-      setCurrentStep('final_results');
+      navigateToStep('final_results');
     }
   };
 
@@ -468,7 +601,7 @@ export const App: React.FC = () => {
     try {
       const updatedVault = reopenPreviousRound(vault);
       setVault(updatedVault);
-      setCurrentStep('round_matches');
+      navigateToStep('round_matches');
     } catch (e: any) {
       alert(`Rollback Error: ${e.message}`);
     }
@@ -486,8 +619,8 @@ export const App: React.FC = () => {
         arbiterActorName
       );
       setVault(updatedVault);
-      setCurrentStep('create_tournament');
-      setViewMode('APP');
+      navigateToStep('create_tournament');
+      navigateToView('APP');
     }
   };
 
@@ -520,8 +653,8 @@ export const App: React.FC = () => {
       arbiterActorName
     );
     setVault(updatedVault);
-    setCurrentStep('create_tournament');
-    setViewMode('APP');
+    navigateToStep('create_tournament');
+    navigateToView('APP');
   };
 
   // Dashboard Action 2: Import Roster from Document
@@ -533,8 +666,8 @@ export const App: React.FC = () => {
       };
       setVault({ ...vault, currentState: nextState });
     }
-    setCurrentStep('roster_entry');
-    setViewMode('APP');
+    navigateToStep('roster_entry');
+    navigateToView('APP');
   };
 
   // Dashboard Action 3: Quick 64-Player GM Demo
@@ -565,8 +698,8 @@ export const App: React.FC = () => {
       arbiterActorName
     );
     setVault(updatedVault);
-    setCurrentStep('roster_entry');
-    setViewMode('APP');
+    navigateToStep('roster_entry');
+    navigateToView('APP');
   };
 
   // 1. Landing Page Animation View
@@ -574,15 +707,15 @@ export const App: React.FC = () => {
     return (
       <LandingHeroView
         activeArbiter={activeArbiter}
-        onProceedToAuth={() => setViewMode('AUTH')}
-        onEnterApp={() => setViewMode('AUTH')}
+        onProceedToAuth={() => navigateToView('AUTH')}
+        onEnterApp={() => navigateToView('AUTH')}
         onSignOut={() => {
           logoutArbiter();
           setActiveArbiter(null);
         }}
         onInstantGuestAccess={(guest) => {
           setActiveArbiter(guest);
-          setViewMode('DASHBOARD');
+          navigateToView('DASHBOARD');
         }}
       />
     );
@@ -594,9 +727,9 @@ export const App: React.FC = () => {
       <ArbiterAuthView
         onSuccess={(arbiter) => {
           setActiveArbiter(arbiter);
-          setViewMode('DASHBOARD');
+          navigateToView('DASHBOARD');
         }}
-        onBackToLanding={() => setViewMode('LANDING')}
+        onBackToLanding={() => navigateToView('LANDING')}
       />
     );
   }
@@ -607,15 +740,16 @@ export const App: React.FC = () => {
       <HomeDashboardView
         activeArbiter={activeArbiter}
         tournament={tournament}
-        onEnterActiveTournament={() => setViewMode('APP')}
+        onEnterActiveTournament={() => navigateToView('APP')}
         onCreateNewTournament={handleCreateNewFromDashboard}
         onLaunchDemoTournament={handleLaunchDemoTournament}
         onImportDocument={handleImportDocumentFromDashboard}
         onOpenCloudSync={() => setIsSupabaseModalOpen(true)}
+        onBackToIntro={() => navigateToView('LANDING')}
         onSignOut={() => {
           logoutArbiter();
           setActiveArbiter(null);
-          setViewMode('LANDING');
+          navigateToView('LANDING');
         }}
       />
     );
@@ -627,7 +761,7 @@ export const App: React.FC = () => {
       {/* 5-Step Sequential Progress Stepper with Arbiter Profile & Sign Out */}
       <SequentialStepper
         currentStep={currentStep}
-        onSelectStep={setCurrentStep}
+        onSelectStep={navigateToStep}
         tournament={tournament}
         auditCount={vault.auditLogs.length}
         onOpenActivityDrawer={() => setIsActivityDrawerOpen(true)}
@@ -635,13 +769,14 @@ export const App: React.FC = () => {
         onOpenPlayerSearch={() => setIsFindBoardModalOpen(true)}
         onOpenPrint={() => window.print()}
         onExportTRF={handleExportTRF}
-        onGoHome={() => setViewMode('DASHBOARD')}
+        onGoHome={() => navigateToView('DASHBOARD')}
+        onGoBack={handleGoBack}
         onOpenCloudSync={() => setIsSupabaseModalOpen(true)}
         activeArbiter={activeArbiter}
         onSignOut={() => {
           logoutArbiter();
           setActiveArbiter(null);
-          setViewMode('LANDING');
+          navigateToView('LANDING');
         }}
       />
 
@@ -652,7 +787,8 @@ export const App: React.FC = () => {
           <Step1CreateTournament
             tournament={tournament}
             onUpdateRules={handleUpdateRules}
-            onProceedToPlayers={() => setCurrentStep('roster_entry')}
+            onProceedToPlayers={() => navigateToStep('roster_entry')}
+            onGoBack={handleGoBack}
           />
         )}
 
@@ -664,6 +800,7 @@ export const App: React.FC = () => {
             onBulkAddCandidates={handleBulkAddCandidates}
             onRemovePlayer={handleRemovePlayer}
             onLockAndPairRound1={handleLockAndPairRound1}
+            onGoBack={handleGoBack}
           />
         )}
 
@@ -675,6 +812,7 @@ export const App: React.FC = () => {
             onSimulateRemaining={handleSimulateRemaining}
             onExplainBoard={(board) => setXrayBoard(board)}
             onAdvanceRound={handleAdvanceRound}
+            onGoBack={handleGoBack}
           />
         )}
 
@@ -684,7 +822,8 @@ export const App: React.FC = () => {
             tournament={tournament}
             onOpenPrizes={() => setIsPrizeModalOpen(true)}
             onOpenCertificates={() => setIsCertificatesModalOpen(true)}
-            onProceedToNextRound={() => setCurrentStep('round_matches')}
+            onProceedToNextRound={() => navigateToStep('round_matches')}
+            onGoBack={handleGoBack}
           />
         )}
 
@@ -697,6 +836,7 @@ export const App: React.FC = () => {
             onOpenPrizes={() => setIsPrizeModalOpen(true)}
             onOpenCertificates={() => setIsCertificatesModalOpen(true)}
             onRestartNewTournament={handleRestartNewTournament}
+            onGoBack={handleGoBack}
           />
         )}
       </main>
@@ -757,11 +897,11 @@ export const App: React.FC = () => {
         onLoadVaultFromCloud={(newVault) => {
           setVault(newVault);
           const t = newVault.currentState;
-          if (t.status === 'COMPLETED') setCurrentStep('final_results');
-          else if (t.status === 'IN_PROGRESS') setCurrentStep('round_matches');
-          else if (t.players.length > 0) setCurrentStep('roster_entry');
-          else setCurrentStep('create_tournament');
-          setViewMode('APP');
+          if (t.status === 'COMPLETED') navigateToStep('final_results');
+          else if (t.status === 'IN_PROGRESS') navigateToStep('round_matches');
+          else if (t.players.length > 0) navigateToStep('roster_entry');
+          else navigateToStep('create_tournament');
+          navigateToView('APP');
         }}
       />
     </div>

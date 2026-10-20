@@ -3,6 +3,7 @@ import {
   ShieldCheck,
   UserCheck,
   ArrowRight,
+  ArrowLeft,
   Lock,
   Mail,
   Globe,
@@ -132,8 +133,30 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
           borderRadius: '12px',
         }}
       >
+        {/* Back to Intro Video Button */}
+        {onBackToLanding && (
+          <button
+            type="button"
+            onClick={onBackToLanding}
+            className="btn btn-secondary-white"
+            style={{
+              position: 'absolute',
+              top: '1rem',
+              left: '1rem',
+              padding: '0.35rem 0.65rem',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              gap: '0.35rem',
+            }}
+            title="Return to Intro Video"
+          >
+            <ArrowLeft size={13} />
+            <span>Intro</span>
+          </button>
+        )}
+
         {/* Top Heraldic Icon & Badge */}
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem', paddingTop: onBackToLanding ? '0.5rem' : '0' }}>
           <div
             style={{
               width: '54px',

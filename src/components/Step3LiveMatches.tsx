@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Trophy, Play, Pause, RotateCcw, Printer, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Trophy, Play, Pause, RotateCcw, Printer, Sparkles, CheckCircle2 } from 'lucide-react';
 import {
   BoardPairing,
   CandidatePlayer,
@@ -14,6 +14,7 @@ interface Step3LiveMatchesProps {
   onSimulateRemaining: () => void;
   onExplainBoard?: (board: BoardPairing) => void;
   onAdvanceRound: () => void;
+  onGoBack?: () => void;
 }
 
 export const Step3LiveMatches: React.FC<Step3LiveMatchesProps> = ({
@@ -22,6 +23,7 @@ export const Step3LiveMatches: React.FC<Step3LiveMatchesProps> = ({
   onSimulateRemaining,
   onExplainBoard,
   onAdvanceRound,
+  onGoBack,
 }) => {
   const currentRoundIdx = tournament.currentRound - 1;
   const currentRoundBoards =
@@ -99,6 +101,18 @@ export const Step3LiveMatches: React.FC<Step3LiveMatchesProps> = ({
         >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+              {onGoBack && (
+                <button
+                  type="button"
+                  onClick={onGoBack}
+                  className="btn btn-secondary-white"
+                  style={{ padding: '0.2rem 0.55rem', fontSize: '0.74rem', minHeight: '26px' }}
+                  title="Return to previous view"
+                >
+                  <ArrowLeft size={12} />
+                  <span>Back</span>
+                </button>
+              )}
               <span className="badge-minimal badge-navy" style={{ fontWeight: 800 }}>
                 ROUND {tournament.currentRound} OF {tournament.totalRounds}
               </span>

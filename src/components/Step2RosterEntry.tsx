@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import {
   UserPlus,
   ArrowRight,
+  ArrowLeft,
   Trash2,
   X,
   CheckCircle2,
@@ -37,6 +38,7 @@ interface Step2RosterEntryProps {
   }>) => void;
   onRemovePlayer?: (playerId: string) => void;
   onLockAndPairRound1: () => void;
+  onGoBack?: () => void;
 }
 
 export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
@@ -45,6 +47,7 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
   onBulkAddCandidates,
   onRemovePlayer,
   onLockAndPairRound1,
+  onGoBack,
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPasteModal, setShowPasteModal] = useState(false);
@@ -260,6 +263,19 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
 
         {/* Clean Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+          {onGoBack && (
+            <button
+              type="button"
+              onClick={onGoBack}
+              className="btn btn-secondary-white"
+              style={{ padding: '0.55rem 0.85rem', fontSize: '0.82rem', fontWeight: 600 }}
+              title="Return to Step 1: Tournament Setup"
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Setup</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => {
