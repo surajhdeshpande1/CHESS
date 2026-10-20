@@ -36,3 +36,5 @@ dist-ssr
 *.webm
 *.webp
 !public/landing.mp4
+!public/portrait.mp4
+

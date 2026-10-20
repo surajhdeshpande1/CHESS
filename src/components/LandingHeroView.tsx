@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   ArrowRight,
   Clock,
@@ -14,6 +14,8 @@ import {
   VolumeX,
   Play,
   Pause,
+  Smartphone,
+  Monitor,
 } from 'lucide-react';
 import { ArbiterProfile, formatArbiterBadge, createGuestOrganizerSession } from '../lib/arbiterAuth';
 
@@ -36,7 +38,38 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
   const [interactiveScore, setInteractiveScore] = useState<'PENDING' | '1-0' | '0-1' | '1/2-1/2'>('PENDING');
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+  const [userSelectedFormat, setUserSelectedFormat] = useState<'AUTO' | 'PORTRAIT' | 'LANDSCAPE'>('AUTO');
+  const [systemIsMobile, setSystemIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth <= 768;
+    }
+    return false;
+  });
+
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setSystemIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isPortraitMode = userSelectedFormat === 'AUTO'
+    ? systemIsMobile
+    : userSelectedFormat === 'PORTRAIT';
+
+  const currentVideoSrc = isPortraitMode ? '/portrait.mp4' : '/landing.mp4';
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.load();
+      if (isPlaying) {
+        videoRef.current.play().catch(() => {});
+      }
+    }
+  }, [currentVideoSrc]);
 
   const togglePlay = () => {
     if (!videoRef.current) return;
@@ -304,21 +337,24 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
           style={{
             position: 'relative',
             width: '100%',
-            maxWidth: '680px',
+            maxWidth: isPortraitMode ? '340px' : '680px',
+            aspectRatio: isPortraitMode ? '9/16' : '16/9',
+            maxHeight: isPortraitMode ? '560px' : 'none',
             margin: '0 auto 1.75rem',
-            borderRadius: '12px',
+            borderRadius: '14px',
             overflow: 'hidden',
             boxShadow: '0 20px 45px -10px rgba(10, 25, 47, 0.22), 0 0 0 1px rgba(10, 25, 47, 0.1)',
             background: '#0a192f',
-            aspectRatio: '16/9',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            transition: 'max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1), aspect-ratio 0.3s ease',
           }}
         >
           <video
             ref={videoRef}
-            src="/landing.mp4"
+            key={currentVideoSrc}
+            src={currentVideoSrc}
             poster="/hero.png"
             autoPlay
             loop
@@ -336,7 +372,7 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
             }}
           />
 
-          {/* Floating Subtle Engine Badge */}
+          {/* Floating Subtle Engine Badge (Top Left) */}
           <div
             style={{
               position: 'absolute',
@@ -345,16 +381,17 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(10, 25, 47, 0.78)',
+              background: 'rgba(10, 25, 47, 0.82)',
               backdropFilter: 'blur(8px)',
               padding: '4px 10px',
               borderRadius: '20px',
-              fontSize: '0.68rem',
+              fontSize: '0.66rem',
               fontWeight: 700,
               color: '#ffffff',
               letterSpacing: '0.04em',
               pointerEvents: 'none',
               border: '1px solid rgba(255, 255, 255, 0.15)',
+              zIndex: 4,
             }}
           >
             <span
@@ -367,10 +404,86 @@ export const LandingHeroView: React.FC<LandingHeroViewProps> = ({
                 boxShadow: isPlaying ? '0 0 8px #4ade80' : 'none',
               }}
             />
-            <span>{isPlaying ? 'SWISS ENGINE ANIMATION' : 'PAUSED'}</span>
+            <span>
+              {isPlaying
+                ? isPortraitMode
+                  ? 'MOBILE PORTRAIT'
+                  : 'DESKTOP 16:9'
+                : 'PAUSED'}
+            </span>
           </div>
 
-          {/* Controls Bar Overlay */}
+          {/* Device Format Switcher Pill (Top Right) */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '3px',
+              background: 'rgba(10, 25, 47, 0.82)',
+              backdropFilter: 'blur(8px)',
+              padding: '3px 4px',
+              borderRadius: '20px',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
+              zIndex: 5,
+            }}
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setUserSelectedFormat('LANDSCAPE');
+              }}
+              style={{
+                background: !isPortraitMode ? 'var(--green-primary)' : 'transparent',
+                color: !isPortraitMode ? '#ffffff' : 'rgba(255, 255, 255, 0.72)',
+                border: 'none',
+                borderRadius: '14px',
+                padding: '3px 7px',
+                fontSize: '0.64rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              title="Laptop / Computer View (16:9 Gemini Video)"
+            >
+              <Monitor size={11} />
+              <span>Laptop</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setUserSelectedFormat('PORTRAIT');
+              }}
+              style={{
+                background: isPortraitMode ? 'var(--green-primary)' : 'transparent',
+                color: isPortraitMode ? '#ffffff' : 'rgba(255, 255, 255, 0.72)',
+                border: 'none',
+                borderRadius: '14px',
+                padding: '3px 7px',
+                fontSize: '0.64rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              title="Mobile Phone View (9:16 Portrait Video)"
+            >
+              <Smartphone size={11} />
+              <span>Mobile</span>
+            </button>
+          </div>
+
+          {/* Controls Bar Overlay (Bottom Right) */}
           <div
             style={{
               position: 'absolute',
