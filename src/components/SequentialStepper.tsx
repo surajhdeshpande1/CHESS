@@ -26,6 +26,10 @@ interface SequentialStepperProps {
   onOpenCloudSync?: () => void;
   activeArbiter?: ArbiterProfile | null;
   onSignOut?: () => void;
+  onOpenOrganizerHub?: () => void;
+  allTournaments?: Array<{ id: string; name: string; status: string; currentRound: number; totalRounds: number }>;
+  activeTournamentId?: string;
+  onSelectTournamentId?: (id: string) => void;
 }
 
 export const SequentialStepper: React.FC<SequentialStepperProps> = ({
@@ -41,6 +45,10 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
   onOpenCloudSync,
   activeArbiter,
   onSignOut,
+  onOpenOrganizerHub,
+  allTournaments,
+  activeTournamentId,
+  onSelectTournamentId,
 }) => {
   const steps: Array<{
     id: SequentialStep;
@@ -195,6 +203,32 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
                 {tournament.name || 'FIDE Dutch'}
               </div>
             </div>
+
+            {allTournaments && allTournaments.length > 1 && onSelectTournamentId && (
+              <select
+                value={activeTournamentId}
+                onChange={(e) => onSelectTournamentId(e.target.value)}
+                style={{
+                  padding: '2px 6px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--navy-border-light)',
+                  background: '#f8fafc',
+                  color: 'var(--navy-deep)',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  maxWidth: '150px',
+                  cursor: 'pointer',
+                  outline: 'none',
+                }}
+                title="Switch active tournament section"
+              >
+                {allTournaments.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 
@@ -211,6 +245,54 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
             flexShrink: 0,
           }}
         >
+          {onOpenOrganizerHub && (
+            <>
+              <button
+                type="button"
+                onClick={onOpenOrganizerHub}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '0.35rem 0.65rem',
+                  borderRadius: '5px',
+                  border: '1px solid #f59e0b',
+                  background: 'rgba(245, 158, 11, 0.12)',
+                  color: '#b45309',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  fontFamily: 'var(--font-sans)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  whiteSpace: 'nowrap',
+                }}
+                title="Manage all tournaments in Multi-Tournament Command Center"
+              >
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    fontFamily: 'var(--font-mono)',
+                    color: '#b45309',
+                    fontWeight: 800,
+                  }}
+                >
+                  00
+                </span>
+                <span>🗂️ All My Tournaments</span>
+              </button>
+              <span
+                style={{
+                  color: 'var(--navy-border)',
+                  fontSize: '0.7rem',
+                  padding: '0 0.1rem',
+                  userSelect: 'none',
+                }}
+              >
+                /
+              </span>
+            </>
+          )}
+
           {steps.map((s, idx) => {
             const isActive = currentStep === s.id;
             const canClick = s.isAvailable;
@@ -457,6 +539,36 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
             maxWidth: '100%',
           }}
         >
+          {onOpenOrganizerHub && (
+            <>
+              <button
+                type="button"
+                onClick={onOpenOrganizerHub}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '0.35rem 0.65rem',
+                  borderRadius: '5px',
+                  border: '1px solid #f59e0b',
+                  background: 'rgba(245, 158, 11, 0.12)',
+                  color: '#b45309',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  fontFamily: 'var(--font-sans)',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+                title="Open Multi-Tournament Organizer Command Center"
+              >
+                <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#b45309', fontWeight: 800 }}>00</span>
+                <span>🗂️ All My Tournaments</span>
+              </button>
+              <span style={{ color: 'var(--navy-border)', fontSize: '0.7rem', padding: '0 0.1rem', userSelect: 'none' }}>/</span>
+            </>
+          )}
+
           {steps.map((s, idx) => {
             const isActive = currentStep === s.id;
             const canClick = s.isAvailable;
@@ -536,6 +648,33 @@ export const SequentialStepper: React.FC<SequentialStepperProps> = ({
             padding: '0.1rem 0',
           }}
         >
+          {onOpenOrganizerHub && (
+            <button
+              type="button"
+              onClick={onOpenOrganizerHub}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                padding: '0.45rem 0.65rem',
+                borderRadius: '6px',
+                border: '1px solid #f59e0b',
+                background: 'rgba(245, 158, 11, 0.12)',
+                color: '#b45309',
+                fontSize: '0.76rem',
+                fontWeight: 800,
+                fontFamily: 'var(--font-sans)',
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+                flexShrink: 0,
+                minHeight: '36px',
+              }}
+            >
+              <span style={{ fontSize: '0.66rem', fontFamily: 'var(--font-mono)', color: '#b45309' }}>00</span>
+              <span>🗂️ All My Tournaments</span>
+            </button>
+          )}
+
           {steps.map((s) => {
             const isActive = currentStep === s.id;
             const canClick = s.isAvailable;

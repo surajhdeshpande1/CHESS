@@ -1,6 +1,16 @@
 // src/lib/fideSwissEngine.ts
 // Complete FIDE C.04.3 Dutch Swiss & C.07 Tie-Break Engine (50 to 200 Players)
 
+import {
+  FideQualityVector,
+  compareQualityVectorsLexicographically,
+  computeTheoreticalBracketBounds,
+  evaluateCandidateQualityVector,
+  generateFideS1S2Exchanges,
+  getBakuAcceleratedPairingScore,
+  computePlayerFideRatingPerformance,
+} from './fideExactMathEngine';
+
 export type FideTitle = 'GM' | 'IM' | 'WGM' | 'FM' | 'WIM' | 'CM' | 'WFM' | 'WCM' | 'NONE';
 export type Color = 'W' | 'B';
 export type ColorPrefStrength = 'ABSOLUTE' | 'STRONG' | 'MILD' | 'NONE';
@@ -105,6 +115,7 @@ export interface TournamentState {
   currentRound: number;
   topSeedInitialColor: Color;  // Drawn before R1: 'W' or 'B'
   status: 'REGISTRATION' | 'IN_PROGRESS' | 'COMPLETED';
+  bakuAcceleration?: boolean;
   rules: EligibilityRules;
   players: CandidatePlayer[];
   rounds: BoardPairing[][];    // rounds[roundIndex] = array of BoardPairings
@@ -395,20 +406,23 @@ export function computePairPenalty(
 }
 
 // ============================================================================
-// 6. DETERMINISTIC BRACKET SOLVER (S1 / S2 TRANSPOSITIONS & EXCHANGES)
+// 6. EXACT 17-DIMENSIONAL LEXICOGRAPHICAL BRACKET SOLVER (FIDE C.04.3)
 // ============================================================================
-interface BracketSolution {
+export interface BracketSolution {
   pairs: Array<[CandidatePlayer, CandidatePlayer]>;
   downfloaters: CandidatePlayer[];
   totalPenalty: number;
+  qualityVector?: FideQualityVector;
 }
 
-function solveBracketOrderPreserving(
+export function solveBracketOrderPreserving(
   bracketPlayers: CandidatePlayer[],
   currentRound: number,
   totalRounds: number,
   topSeedInitialColor: Color,
-  forbiddenDownfloaterIds: Set<string>
+  forbiddenDownfloaterIds: Set<string>,
+  mdpIds: Set<string> = new Set<string>(),
+  isFinalBracketOdd = false
 ): BracketSolution | null {
   const sorted = [...bracketPlayers].sort(compareFideRank);
   const P = sorted.length;
@@ -419,69 +433,213 @@ function solveBracketOrderPreserving(
 
   const isLastRound = currentRound === totalRounds;
   const maxPossibleBeforeRound = currentRound - 1;
+  const bounds = computeTheoreticalBracketBounds(sorted);
+  const maxPairs = Math.floor(P / 2);
 
-  // Build legal edges inside bracket
-  interface LocalEdge { u: number; v: number; weight: number }
+  let bestSolution: BracketSolution | null = null;
+  let bestVector: FideQualityVector | null = null;
+
+  // Zero-violation lower bound check
+  const isTheoreticalMinimum = (v: FideQualityVector, dfCount: number) => {
+    return (
+      v.c5_unpairedMDPs === 0 &&
+      dfCount === bounds.minDownfloaters &&
+      v.c12_disregardedPrefs <= bounds.minC12_disregardedPrefs &&
+      v.c13_disregardedStrong <= bounds.minC13_disregardedStrong &&
+      v.c10_topscorerCdGt2 === 0 &&
+      v.c11_topscorerSame3 === 0
+    );
+  };
+
+  // Stage 1: Exact FIDE Article 4.3 (S1 <-> S2 exchanges) & Article 4.2 (S2 transpositions)
+  const partitions = generateFideS1S2Exchanges(sorted, maxPairs, 2);
+
+  for (const part of partitions) {
+    const s1 = part.s1;
+    const s2 = part.s2;
+    const downfloaterCandidate = s2.length > s1.length ? s2[s2.length - 1] : null;
+    if (downfloaterCandidate && forbiddenDownfloaterIds.has(downfloaterCandidate.id)) {
+      continue;
+    }
+
+    // Try canonical Dutch pairing s1[i] vs s2[i]
+    let canonicalValid = true;
+    const directPairs: Array<[CandidatePlayer, CandidatePlayer]> = [];
+    for (let i = 0; i < s1.length; i++) {
+      const u = s1[i];
+      const v = s2[i];
+      if (havePlayedOverTheBoard(u, v) || !isColorCompatibleUnderC3(u, v, isLastRound, maxPossibleBeforeRound)) {
+        canonicalValid = false;
+        break;
+      }
+      directPairs.push([u, v]);
+    }
+
+    if (canonicalValid) {
+      const dfs = downfloaterCandidate ? [downfloaterCandidate] : [];
+      const vector = evaluateCandidateQualityVector(
+        directPairs,
+        dfs,
+        mdpIds,
+        currentRound,
+        totalRounds,
+        topSeedInitialColor,
+        isFinalBracketOdd
+      );
+
+      if (!bestVector || compareQualityVectorsLexicographically(vector, bestVector) < 0) {
+        bestVector = vector;
+        bestSolution = {
+          pairs: directPairs,
+          downfloaters: dfs,
+          totalPenalty: vector.c12_disregardedPrefs * 1000 + vector.c13_disregardedStrong * 10000,
+          qualityVector: vector,
+        };
+
+        if (isTheoreticalMinimum(vector, dfs.length)) {
+          return bestSolution; // Instant O(P) Zero-Violation Pruning!
+        }
+      }
+    }
+
+    // Try transpositions in S2 for this partition if S2 size is <= 8
+    if (s2.length <= 8) {
+      const candidateS2 = s2.slice(0, s1.length);
+      const usedS2 = new Array(candidateS2.length).fill(false);
+      const currentPairs: Array<[CandidatePlayer, CandidatePlayer]> = [];
+      let foundOptimalForPartition = false;
+
+      function matchS2(idx: number): boolean {
+        if (idx === s1.length) {
+          const dfs = downfloaterCandidate ? [downfloaterCandidate] : [];
+          const vector = evaluateCandidateQualityVector(
+            currentPairs,
+            dfs,
+            mdpIds,
+            currentRound,
+            totalRounds,
+            topSeedInitialColor,
+            isFinalBracketOdd
+          );
+
+          if (!bestVector || compareQualityVectorsLexicographically(vector, bestVector) < 0) {
+            bestVector = vector;
+            bestSolution = {
+              pairs: [...currentPairs],
+              downfloaters: dfs,
+              totalPenalty: vector.c12_disregardedPrefs * 1000 + vector.c13_disregardedStrong * 10000,
+              qualityVector: vector,
+            };
+
+            if (isTheoreticalMinimum(vector, dfs.length)) {
+              foundOptimalForPartition = true;
+              return true;
+            }
+          }
+          return false;
+        }
+
+        const u = s1[idx];
+        for (let j = 0; j < candidateS2.length; j++) {
+          if (usedS2[j]) continue;
+          const v = candidateS2[j];
+          if (havePlayedOverTheBoard(u, v) || !isColorCompatibleUnderC3(u, v, isLastRound, maxPossibleBeforeRound)) {
+            continue;
+          }
+          usedS2[j] = true;
+          currentPairs.push([u, v]);
+          const stop = matchS2(idx + 1);
+          currentPairs.pop();
+          usedS2[j] = false;
+          if (stop) return true;
+        }
+        return false;
+      }
+
+      matchS2(0);
+      if (foundOptimalForPartition && bestSolution) {
+        return bestSolution;
+      }
+    }
+  }
+
+  // If a solution with max pairs was already found, return it
+  if (bestSolution && bestSolution.pairs.length === maxPairs) {
+    return bestSolution;
+  }
+
+  // Stage 2: Heterogeneous General MRV Backtracking with Strict Lexicographical Dominance
+  interface LocalEdge { u: number; v: number; }
   const edges: LocalEdge[] = [];
-  const BASE_WEIGHT = 10_000_000;
-
   for (let i = 0; i < P; i++) {
     for (let j = i + 1; j < P; j++) {
       const u = sorted[i];
       const v = sorted[j];
-      if (havePlayedOverTheBoard(u, v)) continue; // C1
-      if (!isColorCompatibleUnderC3(u, v, isLastRound, maxPossibleBeforeRound)) continue; // C3
-
-      const penalty = computePairPenalty(u, v, currentRound, totalRounds, topSeedInitialColor);
-      // FIDE Dutch S1-S2 preference: top half paired with bottom half
-      const mid = Math.floor(P / 2);
-      const s1s2Bonus = (i < mid && j >= mid) ? 50_000 : 0;
-      const weight = Math.max(1, BASE_WEIGHT - penalty + s1s2Bonus);
-      edges.push({ u: i, v: j, weight });
+      if (havePlayedOverTheBoard(u, v)) continue;
+      if (!isColorCompatibleUnderC3(u, v, isLastRound, maxPossibleBeforeRound)) continue;
+      edges.push({ u: i, v: j });
     }
   }
 
-  // MRV (Minimum Remaining Values) Backtracking matching
-  const adj: { target: number; weight: number }[][] = Array.from({ length: P }, () => []);
+  const adj: number[][] = Array.from({ length: P }, () => []);
   for (const e of edges) {
-    adj[e.u].push({ target: e.v, weight: e.weight });
-    adj[e.v].push({ target: e.u, weight: e.weight });
-  }
-  for (let i = 0; i < P; i++) {
-    adj[i].sort((a, b) => b.weight - a.weight);
+    adj[e.u].push(e.v);
+    adj[e.v].push(e.u);
   }
 
   const matched = new Int32Array(P).fill(-1);
-  let bestMatched = new Int32Array(P).fill(-1);
-  let maxPairs = 0;
-  let bestWeight = -Infinity;
   let steps = 0;
 
-  function mrvSolve(unmatchedCount: number, curWeight: number): boolean {
+  function generalSolve(unmatchedCount: number) {
     steps++;
-    if (steps > 5000) return false;
+    if (steps > 5000) return;
 
-    const pairsCount = Math.floor((P - unmatchedCount) / 2);
-    if (pairsCount > maxPairs || (pairsCount === maxPairs && curWeight > bestWeight)) {
-      maxPairs = pairsCount;
-      bestWeight = curWeight;
-      bestMatched = new Int32Array(matched);
-      if (pairsCount === Math.floor(P / 2)) {
-        return true; // Complete matching found
+    if (unmatchedCount <= 1 || steps % 40 === 0) {
+      const currentPairs: Array<[CandidatePlayer, CandidatePlayer]> = [];
+      const currentDfs: CandidatePlayer[] = [];
+      for (let i = 0; i < P; i++) {
+        if (matched[i] !== -1) {
+          if (i < matched[i]) currentPairs.push([sorted[i], sorted[matched[i]]]);
+        } else {
+          currentDfs.push(sorted[i]);
+        }
       }
+
+      if (!currentDfs.some((df) => forbiddenDownfloaterIds.has(df.id))) {
+        const vector = evaluateCandidateQualityVector(
+          currentPairs,
+          currentDfs,
+          mdpIds,
+          currentRound,
+          totalRounds,
+          topSeedInitialColor,
+          isFinalBracketOdd
+        );
+
+        if (!bestVector || compareQualityVectorsLexicographically(vector, bestVector) < 0) {
+          bestVector = vector;
+          bestSolution = {
+            pairs: currentPairs,
+            downfloaters: currentDfs,
+            totalPenalty: vector.c12_disregardedPrefs * 1000 + vector.c13_disregardedStrong * 10000,
+            qualityVector: vector,
+          };
+          if (isTheoreticalMinimum(vector, currentDfs.length)) {
+            return;
+          }
+        }
+      }
+
+      if (unmatchedCount <= 1) return;
     }
 
-    if (unmatchedCount <= 1) return true;
-
-    // Pick most constrained node
     let bestU = -1;
     let minDeg = Infinity;
-
     for (let i = 0; i < P; i++) {
       if (matched[i] !== -1) continue;
       let deg = 0;
-      for (const edge of adj[i]) {
-        if (matched[edge.target] === -1) deg++;
+      for (const target of adj[i]) {
+        if (matched[target] === -1) deg++;
       }
       if (deg < minDeg) {
         minDeg = deg;
@@ -490,50 +648,27 @@ function solveBracketOrderPreserving(
       }
     }
 
-    if (bestU === -1 || minDeg === 0) return false;
+    if (bestU === -1 || minDeg === 0) return;
 
-    for (const edge of adj[bestU]) {
-      const v = edge.target;
+    for (const v of adj[bestU]) {
       if (matched[v] !== -1) continue;
-
       matched[bestU] = v;
       matched[v] = bestU;
 
-      const ok = mrvSolve(unmatchedCount - 2, curWeight + edge.weight);
-      if (ok && maxPairs === Math.floor(P / 2)) return true;
+      generalSolve(unmatchedCount - 2);
 
       matched[bestU] = -1;
       matched[v] = -1;
-    }
 
-    return false;
-  }
-
-  mrvSolve(P, 0);
-
-  const matchedPairs: Array<[CandidatePlayer, CandidatePlayer]> = [];
-  const downfloaters: CandidatePlayer[] = [];
-
-  for (let i = 0; i < P; i++) {
-    if (bestMatched[i] !== -1) {
-      if (i < bestMatched[i]) {
-        matchedPairs.push([sorted[i], sorted[bestMatched[i]]]);
+      if (bestVector && isTheoreticalMinimum(bestVector, bestSolution?.downfloaters.length ?? 0)) {
+        return;
       }
-    } else {
-      downfloaters.push(sorted[i]);
     }
   }
 
-  // Check forbidden downfloater constraint (C2 PAB eligibility)
-  if (downfloaters.some((df) => forbiddenDownfloaterIds.has(df.id))) {
-    return null;
-  }
+  generalSolve(P);
 
-  return {
-    pairs: matchedPairs,
-    downfloaters,
-    totalPenalty: Math.max(0, BASE_WEIGHT * matchedPairs.length - bestWeight),
-  };
+  return bestSolution;
 }
 
 // ============================================================================
@@ -550,10 +685,14 @@ export function generateNextRoundPairings(tournament: TournamentState): BoardPai
     (p) => p.isActive && Boolean(p.requestedByes[nextRoundNum])
   );
 
-  // Group active present players into descending Scoregroups
-  const scoreSet = Array.from(new Set(activePresent.map((p) => p.score))).sort((a, b) => b - a);
+  // Group active present players into descending Scoregroups (with Baku acceleration if enabled)
+  const bakuEnabled = Boolean(tournament.bakuAcceleration);
+  const getPairingScore = (p: CandidatePlayer) =>
+    getBakuAcceleratedPairingScore(p, activePresent.length, nextRoundNum, bakuEnabled);
+
+  const scoreSet = Array.from(new Set(activePresent.map(getPairingScore))).sort((a, b) => b - a);
   const scoreGroups: CandidatePlayer[][] = scoreSet.map((sc) =>
-    activePresent.filter((p) => p.score === sc).sort(compareFideRank)
+    activePresent.filter((p) => getPairingScore(p) === sc).sort(compareFideRank)
   );
 
   const isOddTotal = activePresent.length % 2 === 1;
@@ -579,7 +718,9 @@ export function generateNextRoundPairings(tournament: TournamentState): BoardPai
       nextRoundNum,
       tournament.totalRounds,
       tournament.topSeedInitialColor,
-      forbiddenDownfloaters
+      forbiddenDownfloaters,
+      new Set(carryOverMDPs.map((m) => m.id)),
+      isLastBracket && isOddTotal
     );
 
     const expectedMaxDownfloaters = isLastBracket ? (isOddTotal ? 1 : 0) : currentBracket.length;
@@ -873,48 +1014,11 @@ export function computeStandingsAndTieBreaks(
       mostWins: p.otbWins,
     };
 
-    // Live FIDE Rating Change (ΔR) and Performance Rating (Rp)
-    let totalDeltaR = 0;
-    let sumOppRating = 0;
-    let ratedOtbGames = 0;
-    let otbPoints = 0;
-
-    for (const h of p.history) {
-      if (h.playedOverTheBoard && h.opponentId) {
-        const opp = playerMap.get(h.opponentId);
-        if (opp && opp.rating > 0) {
-          sumOppRating += opp.rating;
-          ratedOtbGames += 1;
-          otbPoints += h.pointsEarned;
-
-          if (p.rating > 0) {
-            const k = p.rating >= 2400 ? 10 : 20;
-            const expected = 1 / (1 + Math.pow(10, (opp.rating - p.rating) / 400));
-            totalDeltaR += k * (h.pointsEarned - expected);
-          }
-        }
-      }
-    }
-
-    if (ratedOtbGames > 0) {
-      const avgOpp = sumOppRating / ratedOtbGames;
-      p.avgOpponentRating = Math.round(avgOpp);
-      p.fideRatingChange = Number(totalDeltaR.toFixed(1));
-
-      const percentage = otbPoints / ratedOtbGames;
-      if (percentage >= 0.999) {
-        p.performanceRating = Math.round(avgOpp + 800);
-      } else if (percentage <= 0.001) {
-        p.performanceRating = Math.round(avgOpp - 800);
-      } else {
-        const dp = 400 * Math.log10(percentage / (1 - percentage));
-        p.performanceRating = Math.round(avgOpp + dp);
-      }
-    } else {
-      p.avgOpponentRating = undefined;
-      p.fideRatingChange = 0;
-      p.performanceRating = undefined;
-    }
+    // Live Official FIDE B.02 Rating Analytics (ARO, Performance Rp, Live Delta R)
+    const perf = computePlayerFideRatingPerformance(p, playerMap, new Date().getFullYear());
+    p.avgOpponentRating = perf.averageRatingOfOpponents > 0 ? perf.averageRatingOfOpponents : undefined;
+    p.fideRatingChange = perf.eloRatingChange;
+    p.performanceRating = perf.performanceRating > 0 ? perf.performanceRating : undefined;
   }
 
   const byScore = new Map<number, CandidatePlayer[]>();

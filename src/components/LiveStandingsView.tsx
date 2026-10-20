@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ArrowRight, ArrowLeft, Search, Trophy, TrendingUp, TrendingDown, Eye } from 'lucide-react';
 import { CandidatePlayer, TournamentState } from '../lib/fideSwissEngine';
+import { computePlayerFideRatingPerformance } from '../lib/fideExactMathEngine';
 import { PlayerMatchDetailsModal } from './PlayerMatchDetailsModal';
 import { AgeCategoryWinnersView } from './AgeCategoryWinnersView';
 
@@ -21,6 +22,20 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
   const [standingsTab, setStandingsTab] = useState<'OPEN' | 'AGE_CATEGORIES'>('OPEN');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState<CandidatePlayer | null>(null);
+
+  const playerMap = useMemo(
+    () => new Map(tournament.players.map((p) => [p.id, p])),
+    [tournament.players]
+  );
+
+  const perfMetricsMap = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof computePlayerFideRatingPerformance>>();
+    const year = tournament.tournamentYear || new Date().getFullYear();
+    for (const p of tournament.players) {
+      map.set(p.id, computePlayerFideRatingPerformance(p, playerMap, year));
+    }
+    return map;
+  }, [tournament.players, playerMap, tournament.tournamentYear]);
 
   const sortedPlayers = [...tournament.players].sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
@@ -234,6 +249,7 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
               <th style={{ width: '75px', textAlign: 'right' }}>BH-Tot</th>
               <th style={{ width: '75px', textAlign: 'right' }}>SB</th>
               <th style={{ width: '55px', textAlign: 'center' }}>Wins</th>
+              <th style={{ width: '75px', textAlign: 'right' }}>ARO (Ra)</th>
               <th style={{ width: '85px', textAlign: 'right' }}>Perf (Rp)</th>
               <th style={{ width: '80px', textAlign: 'right' }}>ΔR (Elo)</th>
               <th style={{ width: '70px', textAlign: 'center' }}>Details</th>
@@ -244,7 +260,10 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
               const rank = idx + 1;
               const isLeader = rank === 1;
               const isPodium = rank <= 3;
-              const ratingDelta = player.fideRatingChange ?? 0;
+              const perf = perfMetricsMap.get(player.id);
+              const aroVal = perf && perf.averageRatingOfOpponents > 0 ? perf.averageRatingOfOpponents : player.avgOpponentRating;
+              const rpVal = perf && perf.performanceRating > 0 ? perf.performanceRating : player.performanceRating;
+              const ratingDelta = perf ? perf.eloRatingChange : (player.fideRatingChange ?? 0);
               const hasGain = ratingDelta > 0;
               const hasLoss = ratingDelta < 0;
               const fideDisplay = player.fideId && player.fideId.toLowerCase() !== 'unranked'
@@ -328,16 +347,19 @@ export const LiveStandingsView: React.FC<LiveStandingsViewProps> = ({
                   <td style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
                     {player.otbWins || player.roundsWon}
                   </td>
+                  <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                    {aroVal ? aroVal : '—'}
+                  </td>
                   <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--navy-deep)' }}>
-                    {player.performanceRating ? player.performanceRating : '—'}
+                    {rpVal ? rpVal : '—'}
                   </td>
                   <td style={{ textAlign: 'right' }}>
                     {hasGain ? (
-                      <span className="chip-rating-gain">
+                      <span className="chip-rating-gain" style={{ color: '#16a34a', background: 'rgba(22, 163, 74, 0.12)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}>
                         +{ratingDelta.toFixed(1)}
                       </span>
                     ) : hasLoss ? (
-                      <span className="chip-rating-loss">
+                      <span className="chip-rating-loss" style={{ color: '#dc2626', background: 'rgba(220, 38, 38, 0.12)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}>
                         {ratingDelta.toFixed(1)}
                       </span>
                     ) : (

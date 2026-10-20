@@ -30,6 +30,7 @@ interface HomeDashboardViewProps {
   onOpenCloudSync?: () => void;
   onBackToIntro?: () => void;
   onSignOut: () => void;
+  onOpenOrganizerHub?: () => void;
 }
 
 export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
@@ -42,6 +43,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
   onOpenCloudSync,
   onBackToIntro,
   onSignOut,
+  onOpenOrganizerHub,
 }) => {
   const hasExistingTournament = tournament.players.length > 0 || Boolean(tournament.name);
   const isCompleted = tournament.status === 'COMPLETED';
@@ -175,6 +177,26 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
               >
                 <Database size={12} color={isSupabaseConfigured() ? 'var(--green-primary)' : 'var(--navy-royal)'} />
                 <span>{isSupabaseConfigured() ? 'Live' : 'Cloud'}</span>
+              </button>
+            )}
+
+            {onOpenOrganizerHub && (
+              <button
+                type="button"
+                onClick={onOpenOrganizerHub}
+                className="btn btn-secondary-white"
+                style={{
+                  fontSize: '0.74rem',
+                  padding: '0.35rem 0.75rem',
+                  color: '#b45309',
+                  borderColor: 'rgba(245, 158, 11, 0.4)',
+                  background: 'rgba(245, 158, 11, 0.1)',
+                  fontWeight: 800,
+                  minHeight: '34px',
+                }}
+                title="Open Multi-Tournament Command Center"
+              >
+                <span>🗂️ All My Tournaments</span>
               </button>
             )}
 

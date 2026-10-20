@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 import { LandingHeroView } from './components/LandingHeroView';
 import { ArbiterAuthView } from './components/ArbiterAuthView';
@@ -19,6 +19,13 @@ import { BulkCertificatesModal } from './components/BulkCertificatesModal';
 import { SupabaseSyncModal } from './components/SupabaseSyncModal';
 import { isSupabaseConfigured } from './lib/supabaseClient';
 import { saveTournamentToCloud } from './storage/supabaseSync';
+import {
+  OrganizerWorkspace,
+  WORKSPACE_STORAGE_KEY,
+  initializeDefaultWorkspace,
+  getOrganizerTournamentSummaries,
+} from './lib/organizerWorkspaceManager';
+import { OrganizerDashboardHub } from './components/OrganizerDashboardHub';
 
 import { createInitialTournamentState, DEFAULT_RULES, get64DemoCandidates } from './data/quickDemoData';
 import {
@@ -55,43 +62,96 @@ export const App: React.FC = () => {
     return getActiveArbiterSession();
   });
 
-  // View Mode: 'LANDING' -> 'AUTH' -> 'DASHBOARD' -> 'APP'
-  const [viewMode, setViewMode] = useState<'LANDING' | 'AUTH' | 'DASHBOARD' | 'APP'>('LANDING');
+  // View Mode: 'LANDING' -> 'AUTH' -> 'DASHBOARD' -> 'APP' -> 'ORGANIZER_HUB'
+  const [viewMode, setViewMode] = useState<'LANDING' | 'AUTH' | 'DASHBOARD' | 'APP' | 'ORGANIZER_HUB'>('LANDING');
 
-  // Error-Proof Tournament Vault Initialization (Fresh empty state)
-  const [vault, setVault] = useState<TournamentVault>(() => {
+  // Multi-Tournament Organizer Workspace State (Persisted under WORKSPACE_STORAGE_KEY)
+  const [workspace, setWorkspace] = useState<OrganizerWorkspace>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_VAULT_KEY);
+      const saved = localStorage.getItem(WORKSPACE_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.currentState) {
+        if (parsed && parsed.tournamentsById && parsed.activeTournamentId) {
           return parsed;
         }
       }
     } catch (e) {
-      console.error('Failed to load vault from storage', e);
+      console.error('Failed to load workspace from storage', e);
     }
 
-    const initial = createInitialTournamentState();
-    return {
-      currentState: initial,
-      auditLogs: [
-        {
-          id: 'log_init',
-          sequenceNumber: 1,
-          timestampISO: new Date().toISOString(),
-          roundNumber: 0,
-          actionType: 'TOURNAMENT_CREATED',
-          actor: 'Chief Arbiter',
-          summary: 'Initialized fresh tournament configuration under FIDE Dutch C.04.3 regulations.',
-          metadata: {},
-        },
-      ],
-      snapshots: [],
-    };
+    const defaultWs = initializeDefaultWorkspace();
+    try {
+      const oldVaultStr = localStorage.getItem(STORAGE_VAULT_KEY);
+      if (oldVaultStr) {
+        const oldVault = JSON.parse(oldVaultStr);
+        if (oldVault && oldVault.currentState) {
+          const oldId = oldVault.currentState.id || 'tourney_main_open_2026';
+          defaultWs.tournamentsById[oldId] = {
+            createdAtISO: new Date().toISOString(),
+            lastUpdatedISO: new Date().toISOString(),
+            bakuAcceleration: Boolean(oldVault.currentState.bakuAcceleration),
+            vault: oldVault,
+          };
+          defaultWs.activeTournamentId = oldId;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return defaultWs;
   });
 
+  const activeEntry =
+    workspace.tournamentsById[workspace.activeTournamentId] ||
+    Object.values(workspace.tournamentsById)[0] ||
+    workspace.tournamentsById['tourney_main_open_2026'];
+
+  const vault = activeEntry.vault;
   const tournament = vault.currentState;
+
+  const setVault = (updater: TournamentVault | ((prev: TournamentVault) => TournamentVault)) => {
+    setWorkspace((prevWs) => {
+      const currentEntry =
+        prevWs.tournamentsById[prevWs.activeTournamentId] || Object.values(prevWs.tournamentsById)[0];
+      if (!currentEntry) return prevWs;
+      const nextVault = typeof updater === 'function' ? updater(currentEntry.vault) : updater;
+      const now = new Date().toISOString();
+      return {
+        ...prevWs,
+        tournamentsById: {
+          ...prevWs.tournamentsById,
+          [prevWs.activeTournamentId]: {
+            ...currentEntry,
+            lastUpdatedISO: now,
+            bakuAcceleration: Boolean(nextVault.currentState.bakuAcceleration ?? currentEntry.bakuAcceleration),
+            vault: nextVault,
+          },
+        },
+      };
+    });
+  };
+
+  const tournamentSummaries = useMemo(
+    () => getOrganizerTournamentSummaries(workspace),
+    [workspace]
+  );
+
+  const handleSwitchTournament = (tourneyId: string) => {
+    if (!workspace.tournamentsById[tourneyId]) return;
+    setWorkspace((prev) => ({
+      ...prev,
+      activeTournamentId: tourneyId,
+    }));
+    const targetEntry = workspace.tournamentsById[tourneyId];
+    if (targetEntry) {
+      const t = targetEntry.vault.currentState;
+      if (t.status === 'COMPLETED') setCurrentStep('final_results');
+      else if (t.status === 'IN_PROGRESS') setCurrentStep('round_matches');
+      else if (t.players.length > 0) setCurrentStep('roster_entry');
+      else setCurrentStep('create_tournament');
+    }
+    navigateToView('APP');
+  };
 
   // Sequential Step State: 'create_tournament' -> 'roster_entry' -> 'round_matches' -> 'standings' -> 'final_results'
   const [currentStep, setCurrentStep] = useState<SequentialStep>(() => {
@@ -112,7 +172,7 @@ export const App: React.FC = () => {
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
 
   // HTML5 History & State Navigation Engine
-  const navigateToView = (newMode: 'LANDING' | 'AUTH' | 'DASHBOARD' | 'APP') => {
+  const navigateToView = (newMode: 'LANDING' | 'AUTH' | 'DASHBOARD' | 'APP' | 'ORGANIZER_HUB') => {
     setViewMode(newMode);
     try {
       window.history.pushState({ viewMode: newMode, currentStep }, '', window.location.pathname);
@@ -179,6 +239,8 @@ export const App: React.FC = () => {
       } else if (currentStep === 'create_tournament') {
         navigateToView('DASHBOARD');
       }
+    } else if (viewMode === 'ORGANIZER_HUB') {
+      navigateToView('APP');
     } else if (viewMode === 'DASHBOARD') {
       navigateToView('LANDING');
     } else if (viewMode === 'AUTH') {
@@ -248,8 +310,9 @@ export const App: React.FC = () => {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_VAULT_KEY, JSON.stringify(vault));
+      localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(workspace));
     } catch (e) {
-      console.error('Failed to auto-save vault to localStorage', e);
+      console.error('Failed to auto-save workspace to localStorage', e);
     }
 
     if (isSupabaseConfigured()) {
@@ -746,11 +809,25 @@ export const App: React.FC = () => {
         onImportDocument={handleImportDocumentFromDashboard}
         onOpenCloudSync={() => setIsSupabaseModalOpen(true)}
         onBackToIntro={() => navigateToView('LANDING')}
+        onOpenOrganizerHub={() => navigateToView('ORGANIZER_HUB')}
         onSignOut={() => {
           logoutArbiter();
           setActiveArbiter(null);
           navigateToView('LANDING');
         }}
+      />
+    );
+  }
+
+  // 3.5 Organizer Command Hub View
+  if (viewMode === 'ORGANIZER_HUB') {
+    return (
+      <OrganizerDashboardHub
+        workspace={workspace}
+        onUpdateWorkspace={setWorkspace}
+        onOpenTournament={handleSwitchTournament}
+        isDarkTheme={true}
+        onBackToApp={() => navigateToView('APP')}
       />
     );
   }
@@ -778,6 +855,10 @@ export const App: React.FC = () => {
           setActiveArbiter(null);
           navigateToView('LANDING');
         }}
+        onOpenOrganizerHub={() => navigateToView('ORGANIZER_HUB')}
+        allTournaments={tournamentSummaries}
+        activeTournamentId={workspace.activeTournamentId}
+        onSelectTournamentId={handleSwitchTournament}
       />
 
       {/* Main Sequential Content View */}
