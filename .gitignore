@@ -30,3 +30,8 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Media recordings
+*.mp4
+*.webm
+*.webp

@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS public.tournaments (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   city TEXT,
-  tournament_year INTEGER DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
+  tournament_year INTEGER DEFAULT (EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER),
   status TEXT NOT NULL DEFAULT 'REGISTRATION',
   current_round INTEGER DEFAULT 1,
   total_rounds INTEGER DEFAULT 5,
@@ -153,13 +153,35 @@ CREATE TABLE IF NOT EXISTS public.tournaments (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS public.arbiters (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE,
+  title TEXT NOT NULL DEFAULT 'CHIEF_ARBITER',
+  role_type TEXT NOT NULL DEFAULT 'CERTIFIED_ARBITER',
+  federation TEXT DEFAULT 'FID',
+  fide_id TEXT,
+  organization_name TEXT,
+  password_hash TEXT,
+  registered_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.tournaments REPLICA IDENTITY FULL;
 ALTER TABLE public.tournaments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.arbiters ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public read tournaments" ON public.tournaments;
 CREATE POLICY "Public read tournaments" ON public.tournaments FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Allow write tournaments" ON public.tournaments;
 CREATE POLICY "Allow write tournaments" ON public.tournaments FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public read arbiters" ON public.arbiters;
+CREATE POLICY "Public read arbiters" ON public.arbiters FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow write arbiters" ON public.arbiters;
+CREATE POLICY "Allow write arbiters" ON public.arbiters FOR ALL USING (true) WITH CHECK (true);
 
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'tournaments') THEN

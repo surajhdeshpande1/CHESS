@@ -37,7 +37,7 @@ export async function saveTournamentToCloud(
     status: t.status,
     current_round: t.currentRound || 1,
     total_rounds: t.totalRounds || 5,
-    players_count: t.players.length,
+    players_count: t.players?.length || 0,
     time_control_name: t.timeControlName || null,
     arbiter_id: arbiter?.id || null,
     arbiter_name: arbiter ? `${arbiter.title} ${arbiter.name}` : null,

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS public.tournaments (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   city TEXT,
-  tournament_year INTEGER DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
+  tournament_year INTEGER DEFAULT (EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER),
   status TEXT NOT NULL DEFAULT 'REGISTRATION', -- 'REGISTRATION' | 'IN_PROGRESS' | 'COMPLETED'
   current_round INTEGER DEFAULT 1,
   total_rounds INTEGER DEFAULT 5,
@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS public.tournaments (
 CREATE INDEX IF NOT EXISTS idx_tournaments_arbiter ON public.tournaments(arbiter_id);
 CREATE INDEX IF NOT EXISTS idx_tournaments_status ON public.tournaments(status);
 CREATE INDEX IF NOT EXISTS idx_tournaments_updated ON public.tournaments(updated_at DESC);
+
+-- Enable full row replica identity for realtime broadcasts (pairs, clocks, standings)
+ALTER TABLE public.tournaments REPLICA IDENTITY FULL;
 
 -- 2. Create Arbiters Table
 CREATE TABLE IF NOT EXISTS public.arbiters (
@@ -103,6 +106,12 @@ $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS set_tournaments_updated_at ON public.tournaments;
 CREATE TRIGGER set_tournaments_updated_at
   BEFORE UPDATE ON public.tournaments
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+DROP TRIGGER IF EXISTS set_arbiters_updated_at ON public.arbiters;
+CREATE TRIGGER set_arbiters_updated_at
+  BEFORE UPDATE ON public.arbiters
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_updated_at();
 
