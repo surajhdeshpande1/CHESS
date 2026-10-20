@@ -354,14 +354,19 @@ input:focus, select:focus, textarea:focus {
     display: block !important;
   }
 
-  /* When printing with player match details modal open: hide all background app elements */
-  body:has(.player-details-modal-overlay) > *:not(.player-details-modal-overlay) {
+  /* When printing with any modal open: hide all background app elements */
+  body:has(.player-details-modal-overlay) > *:not(.player-details-modal-overlay),
+  body:has(.bulk-certs-modal-overlay) > *:not(.bulk-certs-modal-overlay),
+  body:has(.prize-modal-overlay) > *:not(.prize-modal-overlay),
+  body:has(.modal-overlay) > *:not(:has(.modal-overlay)):not(.modal-overlay) {
     display: none !important;
   }
 
-  /* Flatten modal into clean printable page */
+  /* Universal modal flattening into clean printable page */
+  .modal-overlay,
   .player-details-modal-overlay,
-  .modal-overlay:has(.player-details-modal-content) {
+  .bulk-certs-modal-overlay,
+  .prize-modal-overlay {
     position: static !important;
     display: block !important;
     background: #ffffff !important;
@@ -375,10 +380,13 @@ input:focus, select:focus, textarea:focus {
     overflow: visible !important;
     box-shadow: none !important;
     z-index: auto !important;
+    backdrop-filter: none !important;
   }
 
+  .modal-content,
   .player-details-modal-content,
-  .modal-content:has(.fide-standard-print-table) {
+  .bulk-certs-modal-content,
+  .prize-modal-content {
     position: static !important;
     display: block !important;
     width: 100% !important;
@@ -395,12 +403,33 @@ input:focus, select:focus, textarea:focus {
     margin: 0 !important;
   }
 
+  .bulk-certs-container,
   .player-details-scrollable-body {
     overflow: visible !important;
     max-height: none !important;
     height: auto !important;
     padding: 0 !important;
     margin: 0 !important;
+    display: block !important;
+  }
+
+  /* Each certificate prints on its own clean single sheet */
+  .print-page,
+  .certificate-card {
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    box-shadow: none !important;
+    margin: 0 0 10mm 0 !important;
+    border: 3px double #0a192f !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .certificate-card:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
   }
 
   /* Official FIDE Standard Printable Table (for Player Details & Bulletins) */

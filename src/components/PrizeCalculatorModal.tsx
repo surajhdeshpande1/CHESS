@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Award, Printer, CheckCircle, Trophy, DollarSign } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Award, Printer, CheckCircle, Trophy, DollarSign, X } from 'lucide-react';
 import { CandidatePlayer, TournamentState } from '../lib/fideSwissEngine';
 import {
   AwardedPrize,
@@ -22,6 +22,16 @@ export const PrizeCalculatorModal: React.FC<PrizeCalculatorModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'AGE_CATEGORIES' | 'CASH_PRIZES'>('AGE_CATEGORIES');
   const [prizes] = useState<PrizeCategory[]>(DEFAULT_PRIZE_CATEGORIES);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -46,9 +56,9 @@ export const PrizeCalculatorModal: React.FC<PrizeCalculatorModalProps> = ({
   );
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1000 }}>
+    <div className="modal-overlay prize-modal-overlay" onClick={onClose} style={{ zIndex: 1000 }}>
       <div
-        className="modal-content"
+        className="modal-content prize-modal-content"
         onClick={(e) => e.stopPropagation()}
         style={{
           maxWidth: '1180px',

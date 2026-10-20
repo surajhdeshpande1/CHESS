@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { TournamentState } from '../lib/fideSwissEngine';
 import { findPlayerBoardInfo, PlayerBoardCardInfo } from '../lib/tournamentVaultAndFeatures';
@@ -15,6 +15,16 @@ export const FindMyBoardModal: React.FC<FindMyBoardModalProps> = ({
   tournament,
 }) => {
   const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

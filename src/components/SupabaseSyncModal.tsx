@@ -58,7 +58,11 @@ export const SupabaseSyncModal: React.FC<SupabaseSyncModalProps> = ({
   const [copiedSchema, setCopiedSchema] = useState(false);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
       const cfg = getSupabaseConfig();
       setUrl(cfg.url);
       setAnonKey(cfg.anonKey);
@@ -68,7 +72,8 @@ export const SupabaseSyncModal: React.FC<SupabaseSyncModalProps> = ({
         loadList();
       }
     }
-  }, [isOpen]);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

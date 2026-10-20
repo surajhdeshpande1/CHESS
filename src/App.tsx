@@ -147,6 +147,31 @@ export const App: React.FC = () => {
       if (userTournament) {
         return userTournament;
       }
+
+      // If user has no existing tournaments, isolate session with a clean blank vault owned by this user
+      const userInitId = `tourney_${activeArbiter.id}_init`;
+      const userVault = createBlankTournamentVault(
+        userInitId,
+        `${activeArbiter.name}'s Tournament`,
+        5,
+        50,
+        200,
+        null,
+        null,
+        'OPEN',
+        activeArbiter.id,
+        activeArbiter.email,
+        activeArbiter.name
+      );
+      return {
+        createdAtISO: new Date().toISOString(),
+        lastUpdatedISO: new Date().toISOString(),
+        bakuAcceleration: false,
+        organizerId: activeArbiter.id,
+        organizerEmail: activeArbiter.email,
+        organizerName: activeArbiter.name,
+        vault: userVault,
+      };
     }
 
     return (

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { HelpCircle, CheckCircle } from 'lucide-react';
 import { BoardPairing, CandidatePlayer, Color } from '../lib/fideSwissEngine';
 import { explainBoardPairing, PairingXRayExplanation } from '../lib/tournamentVaultAndFeatures';
@@ -18,6 +18,16 @@ export const PairingXRayModal: React.FC<PairingXRayModalProps> = ({
   players,
   topSeedInitialColor,
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !board) return null;
 
   const explanation: PairingXRayExplanation = explainBoardPairing(board, players, topSeedInitialColor);

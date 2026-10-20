@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   UserPlus,
   ArrowRight,
@@ -15,6 +15,12 @@ import {
 import { FideTitle, TournamentState } from '../lib/fideSwissEngine';
 import { parsePastedPlayerList } from '../lib/playerListParser';
 import { parseDocumentFile } from '../lib/fileDocumentParser';
+import {
+  sanitizePlayerName,
+  sanitizeRating,
+  sanitizeFideId,
+  sanitizeOrganization,
+} from '../lib/securitySanitizer';
 
 interface Step2RosterEntryProps {
   tournament: TournamentState;
@@ -90,11 +96,26 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
     return { rated, titled, withFide };
   }, [activeParsedList]);
 
+  // Handle Escape key to dismiss open modals cleanly
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showAddModal) setShowAddModal(false);
+        if (showPasteModal) setShowPasteModal(false);
+      }
+    };
+    if (showAddModal || showPasteModal) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showAddModal, showPasteModal]);
+
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setAddError(null);
-    if (!name.trim()) {
-      setAddError('Player full name is required.');
+    const sanitizedName = sanitizePlayerName(name);
+    if (!sanitizedName) {
+      setAddError('Player full name is required and must contain valid letters.');
       return;
     }
 
@@ -104,16 +125,16 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
       return;
     }
 
-    const finalFideId = trimmedFide.toLowerCase() === 'unranked' ? 'Unranked' : trimmedFide;
-    const numRating = rating === '' ? 0 : Number(rating);
+    const finalFideId = trimmedFide.toLowerCase() === 'unranked' ? 'Unranked' : sanitizeFideId(trimmedFide);
+    const numRating = rating === '' ? 0 : sanitizeRating(Number(rating));
 
     onAddCandidate({
-      name: name.trim(),
+      name: sanitizedName,
       rating: finalFideId === 'Unranked' && numRating === 0 ? 0 : numRating,
       title,
       birthYear: 2000,
       gender: ['WGM', 'WIM', 'WFM', 'WCM'].includes(title) ? 'F' : 'M',
-      organization: club.trim() || 'Independent',
+      organization: sanitizeOrganization(club) || 'Independent',
       fideId: finalFideId,
     });
 
@@ -183,13 +204,13 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
 
     onBulkAddCandidates(
       activeParsedList.map((p) => ({
-        name: p.name,
-        rating: p.rating,
+        name: sanitizePlayerName(p.name),
+        rating: sanitizeRating(p.rating),
         title: p.title,
         birthYear: p.birthYear,
         gender: p.gender,
-        organization: p.organization,
-        fideId: p.fideId,
+        organization: sanitizeOrganization(p.organization) || 'Independent',
+        fideId: p.fideId ? sanitizeFideId(p.fideId) : 'Unranked',
       }))
     );
 

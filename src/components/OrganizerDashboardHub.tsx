@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   OrganizerWorkspace,
   getOrganizerTournamentSummaries,
   createBlankTournamentVault,
   cloneTournamentTemplate,
 } from '../lib/organizerWorkspaceManager';
-
+import { sanitizeText, safeJsonParse } from '../lib/securitySanitizer';
 import { ArbiterProfile } from '../lib/arbiterAuth';
 
 interface Props {
@@ -67,15 +67,29 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
   const completedCount = summaries.filter((s) => s.status === 'COMPLETED').length;
   const totalPlayersAcrossAll = summaries.reduce((acc, s) => acc + s.playerCount, 0);
 
+  // Handle Escape key to dismiss create modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showCreateModal) setShowCreateModal(false);
+      }
+    };
+    if (showCreateModal) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showCreateModal]);
+
   // Create New Tournament
   const handleCreateTournament = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName.trim()) return;
+    const sanitizedTitle = sanitizeText(newName, 80);
+    if (!sanitizedTitle) return;
 
     const id = `tourney_${Date.now()}`;
     const vault = createBlankTournamentVault(
       id,
-      newName.trim(),
+      sanitizedTitle,
       newRounds,
       Math.max(50, newMinPlayers),
       Math.min(200, newMaxPlayers),
@@ -111,12 +125,26 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
     onOpenTournament(id);
   };
 
-  // Delete a Tournament (with protection if it's the only one left)
+  // Delete a Tournament (with ownership protection and safeguard if it's the only one left)
   const handleDeleteTournament = (id: string, name: string) => {
     if (Object.keys(workspace.tournamentsById).length <= 1) {
       alert('You must keep at least one tournament in your workspace.');
       return;
     }
+
+    const target = workspace.tournamentsById[id];
+    if (!target) return;
+    const isOwner =
+      isAdmin ||
+      (activeArbiter &&
+        (target.organizerId === activeArbiter.id ||
+          (target.organizerEmail &&
+            target.organizerEmail.toLowerCase() === activeArbiter.email.toLowerCase())));
+    if (!isOwner) {
+      alert('Security Protection: You can only delete tournaments that you organized.');
+      return;
+    }
+
     if (!confirm(`Are you sure you want to permanently delete "${name}"?`)) return;
 
     const nextMap = { ...workspace.tournamentsById };
@@ -149,12 +177,29 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const parsed = JSON.parse(event.target?.result as string);
+        const rawContent = event.target?.result as string;
+        const parsed = safeJsonParse<OrganizerWorkspace | null>(rawContent, null);
         if (parsed && parsed.tournamentsById && parsed.activeTournamentId) {
+          // If non-admin organizer imports, ensure unclaimed tournaments are associated with their active account
+          if (!isAdmin && activeArbiter) {
+            for (const tId of Object.keys(parsed.tournamentsById)) {
+              const entry = parsed.tournamentsById[tId];
+              if (!entry.organizerId) {
+                entry.organizerId = activeArbiter.id;
+                entry.organizerEmail = activeArbiter.email;
+                entry.organizerName = activeArbiter.name;
+                if (entry.vault && entry.vault.currentState) {
+                  entry.vault.currentState.organizerId = activeArbiter.id;
+                  entry.vault.currentState.organizerEmail = activeArbiter.email;
+                  entry.vault.currentState.organizerName = activeArbiter.name;
+                }
+              }
+            }
+          }
           onUpdateWorkspace(parsed as OrganizerWorkspace);
           alert('Workspace backup successfully restored!');
         } else {
-          alert('Invalid organizer backup JSON file.');
+          alert('Invalid or corrupted organizer backup JSON file.');
         }
       } catch (err) {
         alert('Failed to parse backup JSON file: ' + err);

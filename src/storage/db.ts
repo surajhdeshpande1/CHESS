@@ -1,16 +1,15 @@
 import { createInitialTournament } from '../data/sampleTournament';
 import { Tournament } from '../types/chess';
+import { safeJsonParse } from '../lib/securitySanitizer';
 
 const STORAGE_KEY = 'fide_swiss_manager_tournament_v1';
 
 export function loadTournamentFromStorage(): Tournament {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.players && parsed.settings) {
-        return parsed;
-      }
+    const parsed = safeJsonParse<Tournament | null>(raw, null);
+    if (parsed && parsed.players && parsed.settings) {
+      return parsed;
     }
   } catch (err) {
     console.error('Failed to load tournament from localStorage', err);

@@ -32,6 +32,7 @@ import {
   logoutAdmin,
   setAdminMasterPasskey,
   getAdminSession,
+  getAdminLockoutStatus,
   AdminUser,
 } from '../lib/adminAuth';
 import {
@@ -99,11 +100,22 @@ export const AdminCommandCenterModal: React.FC<AdminCommandCenterModalProps> = (
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
       const authed = isAdminAuthenticated();
       setIsAdmin(authed);
       setAdminSession(getAdminSession());
-      setPasskeyError(null);
+
+      const lockout = getAdminLockoutStatus();
+      if (lockout.isLockedOut) {
+        setPasskeyError(`Security Lockout Active: please wait ${lockout.remainingSeconds}s.`);
+      } else {
+        setPasskeyError(null);
+      }
+
       setActionStatus(null);
       setDeleteConfirmId(null);
 
@@ -115,7 +127,8 @@ export const AdminCommandCenterModal: React.FC<AdminCommandCenterModalProps> = (
         loadAllAdminData();
       }
     }
-  }, [isOpen]);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -206,7 +219,7 @@ export const AdminCommandCenterModal: React.FC<AdminCommandCenterModalProps> = (
 
   const handleDeleteTournament = async (tId: string) => {
     setActionStatus(`Deleting tournament ${tId} from Supabase...`);
-    const res = await deleteTournamentFromCloud(tId);
+    const res = await deleteTournamentFromCloud(tId, null, true);
     if (res.success) {
       setActionStatus(`✓ Tournament ${tId} permanently deleted from cloud.`);
       setDeleteConfirmId(null);

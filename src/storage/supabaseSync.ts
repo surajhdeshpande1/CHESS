@@ -177,19 +177,28 @@ export async function listCloudTournaments(
 }
 
 /**
- * Delete a tournament from Supabase (Admin Privilege)
+ * Delete a tournament from Supabase (Admin Privilege or Tournament Owner)
  */
 export async function deleteTournamentFromCloud(
-  tournamentId: string
+  tournamentId: string,
+  requesterArbiter?: ArbiterProfile | null,
+  isAdmin: boolean = false
 ): Promise<{ success: boolean; error?: string }> {
   const client = getSupabaseClient();
   if (!client) return { success: false, error: 'Supabase not configured' };
 
   try {
-    const { error } = await client
+    let query = client
       .from('tournaments')
       .delete()
       .eq('id', tournamentId);
+
+    // If caller is not a superadmin, ensure they only delete their own tournament
+    if (!isAdmin && requesterArbiter) {
+      query = query.or(`organizer_id.eq.${requesterArbiter.id},organizer_email.eq.${requesterArbiter.email},arbiter_id.eq.${requesterArbiter.id}`);
+    }
+
+    const { error } = await query;
 
     if (error) {
       return { success: false, error: error.message };

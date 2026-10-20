@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { History, Undo2, RotateCcw, Search } from 'lucide-react';
 import { AuditLogEntry, StateSnapshot, TournamentVault } from '../lib/tournamentVaultAndFeatures';
 
@@ -19,6 +19,16 @@ export const ActivityAndUndoDrawer: React.FC<ActivityAndUndoDrawerProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('ALL');
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

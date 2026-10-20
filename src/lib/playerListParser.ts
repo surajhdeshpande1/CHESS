@@ -1,4 +1,11 @@
 import { FideTitle } from './fideSwissEngine';
+import {
+  sanitizePlayerName,
+  sanitizeRating,
+  sanitizeFideId,
+  sanitizeOrganization,
+  safeParseInt,
+} from './securitySanitizer';
 
 export interface ParsedCandidatePlayer {
   id?: string;
@@ -322,13 +329,13 @@ export function parsePlayerFromHeaderMapping(
   }
 
   return {
-    name,
-    rating,
+    name: sanitizePlayerName(name),
+    rating: sanitizeRating(rating),
     title,
-    fideId: fideId || 'Unranked',
-    organization: org,
+    fideId: sanitizeFideId(fideId) || 'Unranked',
+    organization: sanitizeOrganization(org) || 'Independent',
     gender,
-    birthYear,
+    birthYear: safeParseInt(birthYear, 2000, 1920, 2026),
     rawLine: originalLine,
     confidence: rating > 0 && title !== 'NONE' ? 'HIGH' : 'MEDIUM',
   };
@@ -487,11 +494,11 @@ function parseTokensIntoPlayer(tokens: string[], originalLine: string): ParsedCa
   if (!rawName) return null;
 
   return {
-    name: rawName,
-    rating,
+    name: sanitizePlayerName(rawName),
+    rating: sanitizeRating(rating),
     title,
-    fideId: fideId || 'Unranked',
-    organization: orgOrFed || 'Independent',
+    fideId: sanitizeFideId(fideId) || 'Unranked',
+    organization: sanitizeOrganization(orgOrFed) || 'Independent',
     gender,
     birthYear: 2000,
     rawLine: originalLine,

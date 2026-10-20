@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ShieldCheck, CheckCircle, AlertTriangle } from 'lucide-react';
 import { IntegrityCheckResult } from '../lib/tournamentVaultAndFeatures';
 import { TournamentState } from '../lib/fideSwissEngine';
@@ -16,6 +16,16 @@ export const FideIntegrityModal: React.FC<FideIntegrityModalProps> = ({
   integrity,
   tournament,
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const guards = [

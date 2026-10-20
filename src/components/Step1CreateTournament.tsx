@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { EligibilityRules, TournamentState } from '../lib/fideSwissEngine';
 import { AgePrizeSettings, AgeCategoryDefinition } from '../lib/ageCategoryEngine';
+import { sanitizeText } from '../lib/securitySanitizer';
 
 interface Step1CreateTournamentProps {
   tournament: TournamentState;
@@ -226,7 +227,8 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalName = name.trim() || 'Official Swiss Championship';
+    const finalName = sanitizeText(name, 80) || 'Official Swiss Championship';
+    const finalCity = sanitizeText(city, 50);
     const finalDisplay = getTimeControlDisplay();
 
     const finalCategories: AgeCategoryDefinition[] = [];
@@ -290,7 +292,7 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
       },
       finalName,
       Number(rounds),
-      city.trim(),
+      finalCity,
       Number(baseMinutes),
       Number(incrementSeconds),
       category,

@@ -15,6 +15,7 @@ import {
   generateNextRoundPairings,
   computeStandingsAndTieBreaks,
 } from './fideSwissEngine';
+import { safeJsonParse } from './securitySanitizer';
 
 // ============================================================================
 // 1. IMMUTABLE ACTIVITY LOG & SNAPSHOT TIME-MACHINE TYPES
@@ -276,7 +277,8 @@ export function undoLastTournamentAction(vault: TournamentVault): TournamentVaul
   if (vault.snapshots.length === 0) return vault;
 
   const lastSnapshot = vault.snapshots[vault.snapshots.length - 1];
-  const restoredState: TournamentState = JSON.parse(lastSnapshot.stateJson);
+  const restoredState = safeJsonParse<TournamentState | null>(lastSnapshot.stateJson, null);
+  if (!restoredState) return vault;
   const seq = vault.auditLogs.length + 1;
 
   const undoLog: AuditLogEntry = {

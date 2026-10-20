@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Printer } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Printer, X } from 'lucide-react';
 import { TournamentState } from '../lib/fideSwissEngine';
 import { generateCertificatesData, PlayerCertificateData } from '../lib/tournamentVaultAndFeatures';
 
@@ -16,14 +16,28 @@ export const BulkCertificatesModal: React.FC<BulkCertificatesModalProps> = ({
 }) => {
   const [filterMode, setFilterMode] = useState<'ALL' | 'TOP_10'>('ALL');
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const allCerts: PlayerCertificateData[] = generateCertificatesData(tournament);
   const displayedCerts = filterMode === 'TOP_10' ? allCerts.slice(0, 10) : allCerts;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '820px', maxHeight: '92vh' }}>
+    <div className="modal-overlay bulk-certs-modal-overlay" onClick={onClose}>
+      <div
+        className="modal-content bulk-certs-modal-content"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: '840px', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
+      >
         {/* Header */}
         <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <div>
@@ -34,40 +48,50 @@ export const BulkCertificatesModal: React.FC<BulkCertificatesModalProps> = ({
               Official FIDE Format Certificates of Merit & Participation ({displayedCerts.length} Ready)
             </p>
           </div>
-          <button onClick={onClose} className="drawer-close-btn">✕</button>
+          <button
+            onClick={onClose}
+            className="drawer-close-btn"
+            style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', border: '1px solid var(--navy-border-light)', background: 'var(--bg-secondary)', cursor: 'pointer' }}
+            aria-label="Close"
+          >
+            <X size={16} />
+          </button>
         </div>
 
         {/* Filter & Print Bar */}
-        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
               onClick={() => setFilterMode('ALL')}
-              className={`btn ${filterMode === 'ALL' ? 'btn-navy' : 'btn-secondary'}`}
-              style={{ fontSize: '0.78rem', padding: '0.4rem 0.75rem' }}
+              className={`btn ${filterMode === 'ALL' ? 'btn-primary-navy' : 'btn-secondary-white'}`}
+              style={{ fontSize: '0.78rem', padding: '0.45rem 0.85rem' }}
             >
               All {allCerts.length} Candidates
             </button>
             <button
               onClick={() => setFilterMode('TOP_10')}
-              className={`btn ${filterMode === 'TOP_10' ? 'btn-navy' : 'btn-secondary'}`}
-              style={{ fontSize: '0.78rem', padding: '0.4rem 0.75rem' }}
+              className={`btn ${filterMode === 'TOP_10' ? 'btn-primary-navy' : 'btn-secondary-white'}`}
+              style={{ fontSize: '0.78rem', padding: '0.45rem 0.85rem' }}
             >
               Top 10 Podium Winners
             </button>
           </div>
 
-          <button onClick={() => window.print()} className="btn btn-green" style={{ fontSize: '0.82rem' }}>
+          <button onClick={() => window.print()} className="btn btn-primary-green" style={{ fontSize: '0.82rem' }}>
             <Printer size={15} />
             <span>Print All as PDF</span>
           </button>
         </div>
 
         {/* Printable Certificates Container */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', overflowY: 'auto', maxHeight: '560px', padding: '0.5rem' }}>
+        <div
+          className="bulk-certs-container"
+          style={{ display: 'flex', flexDirection: 'column', gap: '2rem', overflowY: 'auto', maxHeight: '580px', padding: '0.5rem' }}
+        >
           {displayedCerts.map((cert) => (
             <div
               key={cert.playerName}
-              className="print-page"
+              className="print-page certificate-card"
               style={{
                 background: '#ffffff',
                 border: '4px double var(--navy-deep)',
@@ -76,6 +100,7 @@ export const BulkCertificatesModal: React.FC<BulkCertificatesModalProps> = ({
                 textAlign: 'center',
                 color: 'var(--navy-deep)',
                 boxShadow: 'var(--shadow-card)',
+                boxSizing: 'border-box',
               }}
             >
               <div style={{ fontSize: '2.2rem', marginBottom: '0.2rem' }}>♔</div>
@@ -119,7 +144,7 @@ export const BulkCertificatesModal: React.FC<BulkCertificatesModalProps> = ({
                   gap: '2rem',
                   padding: '0.65rem 1.5rem',
                   background: 'var(--bg-secondary)',
-                  border: '1px solid var(--navy-border-subtle)',
+                  border: '1px solid var(--navy-border-light)',
                   borderRadius: '6px',
                   margin: '0 auto 1.5rem',
                 }}
@@ -139,7 +164,7 @@ export const BulkCertificatesModal: React.FC<BulkCertificatesModalProps> = ({
               </div>
 
               {/* Signatures */}
-              <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--navy-border-subtle)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--navy-border-light)' }}>
                 <div>
                   <div style={{ width: '150px', borderBottom: '1px solid var(--navy-deep)', margin: '0 auto 0.35rem' }} />
                   <div style={{ fontSize: '0.75rem', fontWeight: 700 }}>Chief Arbiter (IA / FA)</div>
@@ -156,7 +181,7 @@ export const BulkCertificatesModal: React.FC<BulkCertificatesModalProps> = ({
         </div>
 
         <div className="no-print" style={{ marginTop: '1.25rem', textAlign: 'right' }}>
-          <button onClick={onClose} className="btn btn-navy">
+          <button onClick={onClose} className="btn btn-primary-navy">
             Close Certificates
           </button>
         </div>
