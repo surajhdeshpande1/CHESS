@@ -161,7 +161,7 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
               marginBottom: '0.5rem',
             }}
           >
-            OFFICIAL ARBITER & ORGANIZER PORTAL
+            CHATURANGA • OFFICIAL AUTHORITY PORTAL
           </span>
           <h2
             style={{
@@ -173,7 +173,7 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
               marginTop: '0.35rem',
             }}
           >
-            Tournament Authority Access
+            CHATURANGA Authority Access
           </h2>
           <p
             style={{

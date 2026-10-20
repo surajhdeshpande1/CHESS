@@ -575,13 +575,7 @@ export const App: React.FC = () => {
       <LandingHeroView
         activeArbiter={activeArbiter}
         onProceedToAuth={() => setViewMode('AUTH')}
-        onEnterApp={() => {
-          if (!activeArbiter) {
-            const guest = createGuestOrganizerSession('Tournament Organizer', 'Club Open');
-            setActiveArbiter(guest);
-          }
-          setViewMode('DASHBOARD');
-        }}
+        onEnterApp={() => setViewMode('AUTH')}
         onSignOut={() => {
           logoutArbiter();
           setActiveArbiter(null);
