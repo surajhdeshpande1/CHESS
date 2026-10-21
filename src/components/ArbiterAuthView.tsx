@@ -13,6 +13,8 @@ import {
   Sparkles,
   Zap,
   Crown,
+  MapPin,
+  User,
 } from 'lucide-react';
 import {
   ArbiterProfile,
@@ -50,6 +52,7 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
   const [regFideId, setRegFideId] = useState('');
   const [regFederation, setRegFederation] = useState('');
   const [regOrgName, setRegOrgName] = useState('');
+  const [regCityCountry, setRegCityCountry] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
 
@@ -61,6 +64,8 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
       setRegTitle('IA');
     } else {
       setRegTitle('TOURNAMENT_DIRECTOR');
+      setRegOrgName('');
+      setRegCityCountry('');
     }
     setErrorMessage(null);
   };
@@ -103,8 +108,11 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
         password: regPassword,
         roleType: roleCategory,
         title: regTitle,
-        federation: regFederation.trim(),
-        organizationName: roleCategory === 'ORGANIZER' ? regOrgName.trim() : undefined,
+        federation:
+          roleCategory === 'ORGANIZER'
+            ? regCityCountry.trim() || 'Club Open'
+            : regFederation.trim() || 'FIDE',
+        organizationName: roleCategory === 'ORGANIZER' ? regOrgName.trim() || undefined : undefined,
         fideId: roleCategory === 'CERTIFIED_ARBITER' ? regFideId.trim() || undefined : undefined,
       });
 
@@ -141,14 +149,14 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
       <div
         className="card-clean"
         style={{
-          maxWidth: '560px',
+          maxWidth: '620px',
           width: '100%',
-          padding: 'clamp(1.25rem, 5vw, 2.5rem)',
+          padding: 'clamp(1.5rem, 5vw, 2.75rem)',
           position: 'relative',
           background: '#ffffff',
-          boxShadow: '0 20px 40px -15px rgba(10, 25, 47, 0.08)',
+          boxShadow: '0 25px 50px -12px rgba(10, 25, 47, 0.12), 0 0 0 1px rgba(10, 25, 47, 0.06)',
           border: '1px solid var(--navy-border-light)',
-          borderRadius: '12px',
+          borderRadius: '16px',
         }}
       >
         {/* Back to Intro Video Button */}
@@ -584,137 +592,321 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
               )}
             </div>
 
-            {/* Role Title and Name */}
-            <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.3rem' }}>
-                  {roleCategory === 'CERTIFIED_ARBITER' ? 'Arbiter Title *' : 'Organizer Title *'}
-                </label>
-                <select
-                  value={regTitle}
-                  onChange={(e) => setRegTitle(e.target.value as ArbiterTitle)}
-                  style={{ width: '100%', padding: '0.55rem', fontSize: '0.82rem' }}
-                >
-                  {roleCategory === 'CERTIFIED_ARBITER' ? (
-                    <>
-                      <option value="IA">IA (Intl. Arbiter)</option>
-                      <option value="FA">FA (FIDE Arbiter)</option>
-                      <option value="NA">NA (National Arbiter)</option>
-                      <option value="CA">Club Arbiter</option>
-                      <option value="CHIEF_ARBITER">Chief Arbiter</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="TOURNAMENT_DIRECTOR">Tournament Director</option>
-                      <option value="CLUB_ORGANIZER">Club Organizer</option>
-                      <option value="SCHOOL_COACH">School / Coach</option>
-                      <option value="CHESS_ORGANIZER">Event Coordinator</option>
-                    </>
-                  )}
-                </select>
-              </div>
+            {/* Registration Form Fields - Arranged One Below Another */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem', marginBottom: '1.5rem' }}>
+              {roleCategory === 'ORGANIZER' ? (
+                /* NON-ARBITER / CLUB & ACADEMY ORGANIZER SECTION (DETAILS ONE BELOW ANOTHER) */
+                <>
+                  {/* 1. Organizer Directorship Title */}
+                  <div>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        color: 'var(--navy-deep)',
+                        marginBottom: '0.35rem',
+                      }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Award size={14} color="var(--green-deep)" />
+                        Organizer Directorship Role *
+                      </span>
+                      <span className="badge-minimal badge-green" style={{ fontSize: '0.62rem' }}>
+                        No License Needed
+                      </span>
+                    </label>
+                    <select
+                      value={regTitle}
+                      onChange={(e) => setRegTitle(e.target.value as ArbiterTitle)}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', fontSize: '0.86rem', fontWeight: 600 }}
+                    >
+                      <option value="TOURNAMENT_DIRECTOR">🏆 Tournament Director (General Chess Events)</option>
+                      <option value="CLUB_ORGANIZER">🏛 Club Organizer (Local Chess Clubs & Arenas)</option>
+                      <option value="SCHOOL_COACH">🎓 School Coach / Academy Teacher (Scholastic)</option>
+                      <option value="CHESS_ORGANIZER">♟ Event Coordinator / League Host</option>
+                    </select>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                      Selected title is shown on official standings, player certificates, and round pairings.
+                    </span>
+                  </div>
 
+                  {/* 2. Full Legal / Host Name */}
+                  <div>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        color: 'var(--navy-deep)',
+                        marginBottom: '0.35rem',
+                        gap: '0.4rem',
+                      }}
+                    >
+                      <User size={14} color="var(--navy-royal)" />
+                      Full Host / Director Name *
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        required
+                        autoComplete="off"
+                        placeholder="e.g. Sarah Jenkins or David Vance"
+                        value={regName}
+                        onChange={(e) => setRegName(e.target.value)}
+                        style={{ width: '100%', padding: '0.65rem 0.85rem', fontSize: '0.86rem' }}
+                      />
+                    </div>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                      Primary director contact signature on pairing notices and award sheets.
+                    </span>
+                  </div>
+
+                  {/* 3. Club / Academy / School Organization */}
+                  <div>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        color: 'var(--navy-deep)',
+                        marginBottom: '0.35rem',
+                        gap: '0.4rem',
+                      }}
+                    >
+                      <Building2 size={14} color="var(--green-deep)" />
+                      Club / Academy / Organization Name *
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        required
+                        autoComplete="off"
+                        placeholder="e.g. Zurich CC, Royal Knights Chess Academy, City High School"
+                        value={regOrgName}
+                        onChange={(e) => setRegOrgName(e.target.value)}
+                        style={{ width: '100%', padding: '0.65rem 0.85rem', fontSize: '0.86rem' }}
+                      />
+                    </div>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                      Shown on bulletin headers, live spectator links, and club affiliation tags.
+                    </span>
+                  </div>
+
+                  {/* 4. Host City & Country */}
+                  <div>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        color: 'var(--navy-deep)',
+                        marginBottom: '0.35rem',
+                        gap: '0.4rem',
+                      }}
+                    >
+                      <MapPin size={14} color="var(--green-deep)" />
+                      Host City & Country *
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        required
+                        autoComplete="off"
+                        placeholder="e.g. Zurich, Switzerland or Mumbai, India"
+                        value={regCityCountry}
+                        onChange={(e) => setRegCityCountry(e.target.value)}
+                        style={{ width: '100%', padding: '0.65rem 0.85rem', fontSize: '0.86rem' }}
+                      />
+                    </div>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                      Location of your tournaments, halls, or online club jurisdiction.
+                    </span>
+                  </div>
+                </>
+              ) : (
+                /* CERTIFIED FIDE ARBITER SECTION (DETAILS ONE BELOW ANOTHER) */
+                <>
+                  {/* 1. Licensed Arbiter Title */}
+                  <div>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        color: 'var(--navy-deep)',
+                        marginBottom: '0.35rem',
+                      }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Award size={14} color="var(--navy-royal)" />
+                        Licensed FIDE Arbiter Title *
+                      </span>
+                      <span className="badge-minimal badge-navy" style={{ fontSize: '0.62rem' }}>
+                        FIDE B.02 Certified
+                      </span>
+                    </label>
+                    <select
+                      value={regTitle}
+                      onChange={(e) => setRegTitle(e.target.value as ArbiterTitle)}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', fontSize: '0.86rem', fontWeight: 600 }}
+                    >
+                      <option value="IA">International Arbiter (IA - Category A/B/C/D)</option>
+                      <option value="FA">FIDE Arbiter (FA)</option>
+                      <option value="NA">National Arbiter (NA)</option>
+                      <option value="CA">Club Arbiter (CA)</option>
+                      <option value="CHIEF_ARBITER">Chief Arbiter / Section Arbiter</option>
+                    </select>
+                  </div>
+
+                  {/* 2. Full Legal Arbiter Name */}
+                  <div>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        color: 'var(--navy-deep)',
+                        marginBottom: '0.35rem',
+                        gap: '0.4rem',
+                      }}
+                    >
+                      <UserCheck size={14} color="var(--navy-royal)" />
+                      Full Legal Arbiter Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      autoComplete="off"
+                      placeholder="e.g. IA Alexander Vance or FA Maria Schmidt"
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', fontSize: '0.86rem' }}
+                    />
+                  </div>
+
+                  {/* 3. FIDE Arbiter ID */}
+                  <div>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        color: 'var(--navy-deep)',
+                        marginBottom: '0.35rem',
+                        gap: '0.4rem',
+                      }}
+                    >
+                      <Award size={14} color="var(--navy-royal)" />
+                      FIDE Arbiter ID (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      autoComplete="off"
+                      placeholder="e.g. 1503014 (or leave blank if NA/CA)"
+                      value={regFideId}
+                      onChange={(e) => setRegFideId(e.target.value)}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', fontSize: '0.86rem' }}
+                    />
+                  </div>
+
+                  {/* 4. National Chess Federation */}
+                  <div>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        color: 'var(--navy-deep)',
+                        marginBottom: '0.35rem',
+                        gap: '0.4rem',
+                      }}
+                    >
+                      <Globe size={14} color="var(--navy-royal)" />
+                      National Chess Federation *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      autoComplete="off"
+                      placeholder="e.g. FIDE, Switzerland, India, USA, Germany"
+                      value={regFederation}
+                      onChange={(e) => setRegFederation(e.target.value)}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', fontSize: '0.86rem' }}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* 5. Official Contact Email */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.3rem' }}>
-                  Full Legal / Host Name *
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    color: 'var(--navy-deep)',
+                    marginBottom: '0.35rem',
+                    gap: '0.4rem',
+                  }}
+                >
+                  <Mail size={14} color="var(--navy-royal)" />
+                  Official Contact Email *
                 </label>
                 <input
-                  type="text"
+                  type="email"
                   required
-                  placeholder={roleCategory === 'CERTIFIED_ARBITER' ? 'e.g. Alexander Vance' : 'e.g. Sarah Jenkins'}
-                  value={regName}
-                  onChange={(e) => setRegName(e.target.value)}
-                  style={{ width: '100%' }}
+                  autoComplete="email"
+                  placeholder="e.g. director@chess-academy.org or arbiter@fide.com"
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', fontSize: '0.86rem' }}
                 />
+                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                  Used to sign in, synchronize tournament databases, and recover director access.
+                </span>
               </div>
-            </div>
 
-            {/* FIDE ID & Federation OR Organization & Location */}
-            {roleCategory === 'CERTIFIED_ARBITER' ? (
-              <div className="mobile-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.85rem', marginBottom: '1rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.3rem' }}>
-                    FIDE Arbiter ID
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 1503014 (or leave blank)"
-                    value={regFideId}
-                    onChange={(e) => setRegFideId(e.target.value)}
-                    style={{ width: '100%' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.3rem' }}>
-                    National Federation *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. FIDE, Switzerland, India, USA"
-                    value={regFederation}
-                    onChange={(e) => setRegFederation(e.target.value)}
-                    style={{ width: '100%' }}
-                  />
-                </div>
+              {/* 6. Security Password */}
+              <div>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    color: 'var(--navy-deep)',
+                    marginBottom: '0.35rem',
+                    gap: '0.4rem',
+                  }}
+                >
+                  <Lock size={14} color="var(--navy-royal)" />
+                  Security Password *
+                </label>
+                <input
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  placeholder="Minimum 6 characters"
+                  value={regPassword}
+                  onChange={(e) => setRegPassword(e.target.value)}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', fontSize: '0.86rem' }}
+                />
+                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                  Secures your local offline vault and cloud director profile.
+                </span>
               </div>
-            ) : (
-              <div className="mobile-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.85rem', marginBottom: '1rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.3rem' }}>
-                    Club / Academy / School *
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Zurich CC, FIDE Club, City Academy"
-                    value={regOrgName}
-                    onChange={(e) => setRegOrgName(e.target.value)}
-                    style={{ width: '100%' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.3rem' }}>
-                    City / Country
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. London / Open"
-                    value={regFederation}
-                    onChange={(e) => setRegFederation(e.target.value)}
-                    style={{ width: '100%' }}
-                  />
-                </div>
-              </div>
-            )}
-
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.3rem' }}>
-                Official Contact Email *
-              </label>
-              <input
-                type="email"
-                required
-                placeholder="contact@chess-federation.org"
-                value={regEmail}
-                onChange={(e) => setRegEmail(e.target.value)}
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.3rem' }}>
-                Security Password *
-              </label>
-              <input
-                type="password"
-                required
-                placeholder="Minimum 6 characters"
-                value={regPassword}
-                onChange={(e) => setRegPassword(e.target.value)}
-                style={{ width: '100%' }}
-              />
             </div>
 
             <button

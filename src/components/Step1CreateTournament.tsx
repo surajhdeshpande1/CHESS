@@ -11,6 +11,7 @@ import {
   Trophy,
   Check,
   Sparkles,
+  MapPin,
 } from 'lucide-react';
 import { EligibilityRules, TournamentState } from '../lib/fideSwissEngine';
 import { AgePrizeSettings, AgeCategoryDefinition } from '../lib/ageCategoryEngine';
@@ -348,81 +349,105 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
       {/* Main Configuration Card */}
       <form onSubmit={handleSubmit} className="card-clean responsive-form-card" style={{ padding: '2rem 2.25rem' }}>
         {/* Tournament Name */}
-        <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ marginBottom: '1.35rem' }}>
           <label
             style={{
-              display: 'block',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
               fontSize: '0.8rem',
-              fontWeight: 700,
+              fontWeight: 800,
               textTransform: 'uppercase',
               letterSpacing: '0.06em',
               color: 'var(--navy-deep)',
               marginBottom: '0.45rem',
             }}
           >
-            Tournament Name *
+            <Trophy size={15} color="var(--navy-royal)" />
+            <span>Tournament Official Title *</span>
           </label>
           <input
             type="text"
             required
+            autoComplete="off"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Zurich Masters Swiss Championship 2026 / FIDE Club Open"
             style={{ width: '100%', padding: '0.75rem 1rem', fontSize: '0.95rem' }}
           />
+          <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+            Official championship title displayed on all pairing bulletins, wall sheets, and player standings.
+          </span>
         </div>
 
-        {/* City / Venue & Swiss Rounds */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '1rem', marginBottom: '1.75rem' }}>
-          <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                color: 'var(--navy-deep)',
-                marginBottom: '0.45rem',
-              }}
-            >
-              Host City / Venue
-            </label>
-            <input
-              type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="e.g. Zurich, Switzerland / FIDE Club Arena"
-              style={{ width: '100%', padding: '0.65rem 0.85rem' }}
-            />
-          </div>
+        {/* Host City / Venue / Club Arena */}
+        <div style={{ marginBottom: '1.35rem' }}>
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              color: 'var(--navy-deep)',
+              marginBottom: '0.45rem',
+            }}
+          >
+            <MapPin size={15} color="var(--green-deep)" />
+            <span>Host City, Venue or Chess Club *</span>
+          </label>
+          <input
+            type="text"
+            autoComplete="off"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="e.g. Zurich CC Arena, Switzerland or Mumbai Open Chess Hall"
+            style={{ width: '100%', padding: '0.7rem 1rem', fontSize: '0.9rem' }}
+          />
+          <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+            Physical venue, chess academy hall, or online hosting city for regulatory compliance.
+          </span>
+        </div>
 
-          <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                color: 'var(--navy-deep)',
-                marginBottom: '0.45rem',
-              }}
-            >
-              Number of Swiss Rounds *
-            </label>
-            <select
-              value={rounds}
-              onChange={(e) => setRounds(Number(e.target.value))}
-              style={{ width: '100%', padding: '0.65rem 0.85rem', fontWeight: 600 }}
-            >
-              <option value={3}>3 Rounds (Short Club Blitz / Demo)</option>
-              <option value={5}>5 Rounds (Standard Weekend Swiss)</option>
-              <option value={7}>7 Rounds (Major Open Swiss)</option>
-              <option value={9}>9 Rounds (Official FIDE Norm Swiss)</option>
-              <option value={11}>11 Rounds (World Championship Swiss)</option>
-            </select>
-          </div>
+        {/* Number of Swiss Rounds */}
+        <div style={{ marginBottom: '1.75rem' }}>
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              color: 'var(--navy-deep)',
+              marginBottom: '0.45rem',
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+              <Shield size={15} color="var(--navy-royal)" />
+              <span>Total Swiss Rounds *</span>
+            </span>
+            <span className="badge-minimal badge-navy" style={{ fontSize: '0.65rem' }}>
+              FIDE C.04.3 Dutch System
+            </span>
+          </label>
+          <select
+            value={rounds}
+            onChange={(e) => setRounds(Number(e.target.value))}
+            style={{ width: '100%', padding: '0.7rem 1rem', fontWeight: 700, fontSize: '0.9rem' }}
+          >
+            <option value={3}>3 Rounds — Short Club Blitz / 1-Day Demo</option>
+            <option value={5}>5 Rounds — Standard Weekend Swiss (Recommended for 16–40 Players)</option>
+            <option value={7}>7 Rounds — Major Open Swiss (Recommended for 40–100 Players)</option>
+            <option value={9}>9 Rounds — Official FIDE Norm Swiss Championship</option>
+            <option value={11}>11 Rounds — World Championship / Olympiad Swiss</option>
+          </select>
+          <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+            Each player plays every round without elimination. Pairing brackets dynamically balanced via FIDE Dutch engine.
+          </span>
         </div>
 
         {/* DETAILED ROUND TIMER & TIME CONTROL SECTION */}
