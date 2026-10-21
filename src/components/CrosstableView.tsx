@@ -36,7 +36,7 @@ export const CrosstableView: React.FC<CrosstableViewProps> = ({
           </p>
         </div>
 
-        <div style={{ position: 'relative', width: '280px' }}>
+        <div style={{ position: 'relative', width: 'min(100%, 280px)' }}>
           <Search size={15} style={{ position: 'absolute', left: '10px', top: '10px', color: 'var(--text-muted)' }} />
           <input
             type="text"

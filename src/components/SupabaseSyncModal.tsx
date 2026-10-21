@@ -487,12 +487,12 @@ END $$;`;
 
             {/* Action buttons */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }} className="mobile-full-btn">
                 <button
                   type="button"
                   onClick={handleTestConnection}
                   disabled={isTesting || !url || !anonKey}
-                  className="btn btn-secondary-white"
+                  className="btn btn-secondary-white mobile-full-btn"
                   style={{ fontSize: '0.78rem', padding: '0.5rem 0.9rem' }}
                 >
                   <RefreshCw size={13} className={isTesting ? 'spin' : ''} />
@@ -503,7 +503,7 @@ END $$;`;
                   type="button"
                   onClick={handleSaveSettings}
                   disabled={!url || !anonKey}
-                  className="btn btn-primary-navy"
+                  className="btn btn-primary-navy mobile-full-btn"
                   style={{ fontSize: '0.78rem', padding: '0.5rem 1.1rem' }}
                 >
                   <Check size={14} />
@@ -515,7 +515,7 @@ END $$;`;
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="btn btn-secondary-white"
+                  className="btn btn-secondary-white mobile-full-btn"
                   style={{ fontSize: '0.74rem', padding: '0.45rem 0.75rem', color: '#991b1b' }}
                 >
                   Clear Credentials

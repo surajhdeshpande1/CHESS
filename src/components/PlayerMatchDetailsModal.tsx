@@ -952,11 +952,12 @@ export const PlayerMatchDetailsModal: React.FC<PlayerMatchDetailsModalProps> = (
           style={{
             background: 'var(--bg-secondary)',
             borderTop: '1px solid var(--navy-border-light)',
-            padding: '0.75rem 1.5rem',
+            padding: '0.85rem 1.25rem',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            gap: '1rem',
+            gap: '0.85rem',
+            flexWrap: 'wrap',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -964,14 +965,14 @@ export const PlayerMatchDetailsModal: React.FC<PlayerMatchDetailsModalProps> = (
               Official FIDE Dutch C.04.3 Regulatory Dossier
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: 'auto' }} className="mobile-full-btn">
             <button
               type="button"
               onClick={() => window.print()}
-              className="btn btn-outline"
+              className="btn btn-outline mobile-full-btn"
               style={{
                 fontSize: '0.82rem',
-                padding: '0.45rem 1rem',
+                padding: '0.5rem 1rem',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
@@ -984,8 +985,8 @@ export const PlayerMatchDetailsModal: React.FC<PlayerMatchDetailsModalProps> = (
             <button
               type="button"
               onClick={onClose}
-              className="btn btn-primary-navy"
-              style={{ fontSize: '0.82rem', padding: '0.45rem 1.25rem' }}
+              className="btn btn-primary-navy mobile-full-btn"
+              style={{ fontSize: '0.82rem', padding: '0.5rem 1.25rem' }}
             >
               Close Dossier
             </button>

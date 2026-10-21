@@ -191,16 +191,36 @@ input, select, textarea {
   font-family: var(--font-body);
   background: #ffffff;
   border: 1px solid var(--navy-border);
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--navy-deep);
-  padding: 0.6rem 0.85rem;
-  font-size: 0.88rem;
+  padding: 0.65rem 0.95rem;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  max-width: 100%;
   transition: all 0.15s ease;
 }
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--navy-royal);
-  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12);
+}
+
+/* Translucent Informative Placeholders: clear visual cue so user knows what to type without backspacing */
+::placeholder,
+::-webkit-input-placeholder,
+::-moz-placeholder,
+:-ms-input-placeholder {
+  color: #94a3b8 !important;
+  opacity: 0.65 !important;
+  font-weight: 400 !important;
+  font-style: italic !important;
+  letter-spacing: normal !important;
+}
+
+input:focus::placeholder,
+textarea:focus::placeholder {
+  opacity: 0.3 !important;
+  transition: opacity 0.2s ease;
 }
 
 /* Minimalist Badges & Indicators */
@@ -673,16 +693,28 @@ input:focus, select:focus, textarea:focus {
     font-size: clamp(1.05rem, 3.8vw, 1.3rem) !important;
   }
 
-  /* Prevent iOS Safari from zooming into form fields on focus */
+  /* Spacious, thumb-friendly form controls & touch targets */
   input, select, textarea {
     font-size: 16px !important;
-    min-height: 42px;
+    min-height: 46px !important;
+    padding: 10px 14px !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    border-radius: 8px !important;
   }
 
   .btn {
-    min-height: 42px;
-    padding: 0.55rem 1rem;
-    font-size: 0.86rem;
+    min-height: 46px !important;
+    padding: 0.65rem 1.15rem !important;
+    font-size: 0.9rem !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+  }
+
+  label {
+    font-size: 0.82rem !important;
+    margin-bottom: 0.45rem !important;
+    display: block !important;
   }
 }
 
@@ -846,45 +878,90 @@ input:focus, select:focus, textarea:focus {
 /* 7. Bottom-Sheet Style Modals on Small Screens */
 @media (max-width: 640px) {
   .modal-overlay {
-    padding: 0.5rem;
-    align-items: flex-end;
+    padding: 0.75rem 0.5rem !important;
+    align-items: flex-end !important;
   }
 
   .modal-content {
-    padding: 1.15rem 0.85rem !important;
-    border-radius: 16px 16px 10px 10px !important;
-    max-height: 94vh !important;
+    padding: 1.5rem 1.15rem !important;
+    border-radius: 20px 20px 12px 12px !important;
+    max-height: 92vh !important;
     width: 96vw !important;
     max-width: 96vw !important;
     margin: 0 auto !important;
-    box-shadow: 0 -10px 25px -5px rgba(10, 25, 47, 0.25) !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 -12px 30px -5px rgba(10, 25, 47, 0.3) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .modal-content form {
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 }
 
-/* 8. Responsive Form Cards & Subcards */
+/* 8. Responsive Form Cards, Subcards & Spacious Phone Grids */
 @media (max-width: 640px) {
   .responsive-form-card {
-    padding: 1.15rem 0.85rem !important;
-    border-radius: 10px !important;
+    padding: 1.35rem 1.1rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1.5rem !important;
+    box-sizing: border-box !important;
   }
 
   .responsive-subcard {
-    padding: 0.85rem 0.65rem !important;
+    padding: 1.15rem 0.95rem !important;
+    border-radius: 12px !important;
+    margin-bottom: 1.35rem !important;
+    box-sizing: border-box !important;
   }
 
   .responsive-card {
-    padding: 1rem 0.85rem !important;
+    padding: 1.25rem 1rem !important;
+    border-radius: 12px !important;
+    margin-bottom: 1.25rem !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Form & Modal Multi-Column Grids: Auto-stack vertically on phones to prevent crushed inputs */
+  .modal-content form > div[style*="grid"],
+  .responsive-form-card form > div[style*="grid"],
+  .responsive-form-card > div[style*="grid"],
+  .mobile-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.15rem !important;
+  }
+
+  .modal-content form > div,
+  .responsive-form-card form > div {
+    margin-bottom: 1.25rem !important;
+  }
+
+  /* Mobile Full-Width Spacious Action Bars */
+  .roster-actions-bar {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 0.75rem !important;
+  }
+
+  .roster-actions-bar .btn,
+  .roster-generate-btn,
+  .modal-content form .btn-primary-navy,
+  .modal-content form .btn-primary-green,
+  .modal-content form .btn-primary,
+  .modal-content .btn,
+  .mobile-full-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
   }
 
   .mobile-stack {
     flex-direction: column !important;
     width: 100% !important;
     align-items: stretch !important;
-  }
-
-  .mobile-full-btn {
-    width: 100% !important;
-    justify-content: center !important;
   }
 }
 

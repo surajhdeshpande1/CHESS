@@ -925,7 +925,7 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+              <div className="mobile-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '0.85rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: textMuted, marginBottom: '0.35rem' }}>
                     Total Rounds
@@ -994,7 +994,7 @@ export const OrganizerDashboardHub: React.FC<Props> = ({
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+              <div className="mobile-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '0.85rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: textMuted, marginBottom: '0.35rem' }}>
                     Max Rating (Opt)

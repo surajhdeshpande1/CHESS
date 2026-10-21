@@ -486,28 +486,28 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
             </div>
 
             <form onSubmit={handleAddSubmit}>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.35rem' }}>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.4rem' }}>
                   Player Full Name *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Alexander Vance"
+                  placeholder="e.g. Alexander Vance (or Lastname, Firstname)"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   style={{ width: '100%' }}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div className="mobile-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.35rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.4rem' }}>
                     Elo Rating
                   </label>
                   <input
                     type="number"
-                    placeholder="e.g. 2150 (0 for UR)"
+                    placeholder="e.g. 2150 (leave empty if unrated)"
                     value={rating}
                     onChange={(e) => setRating(e.target.value === '' ? '' : Number(e.target.value))}
                     style={{ width: '100%' }}
@@ -515,31 +515,31 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.35rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.4rem' }}>
                     FIDE Title
                   </label>
                   <select
                     value={title}
                     onChange={(e) => setTitle(e.target.value as FideTitle)}
-                    style={{ width: '100%', padding: '0.55rem' }}
+                    style={{ width: '100%', padding: '0.65rem 0.85rem' }}
                   >
-                    <option value="NONE">None</option>
-                    <option value="GM">GM</option>
-                    <option value="IM">IM</option>
-                    <option value="FM">FM</option>
-                    <option value="CM">CM</option>
-                    <option value="WGM">WGM</option>
-                    <option value="WIM">WIM</option>
-                    <option value="WFM">WFM</option>
-                    <option value="WCM">WCM</option>
+                    <option value="NONE">None (Regular)</option>
+                    <option value="GM">GM (Grandmaster)</option>
+                    <option value="IM">IM (International Master)</option>
+                    <option value="FM">FM (FIDE Master)</option>
+                    <option value="CM">CM (Candidate Master)</option>
+                    <option value="WGM">WGM (Woman Grandmaster)</option>
+                    <option value="WIM">WIM (Woman International Master)</option>
+                    <option value="WFM">WFM (Woman FIDE Master)</option>
+                    <option value="WCM">WCM (Woman Candidate Master)</option>
                   </select>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <div className="mobile-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                    <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--navy-deep)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--navy-deep)' }}>
                       FIDE ID *
                     </label>
                     <button
@@ -557,9 +557,9 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
                         color: fideId.toLowerCase() === 'unranked' ? '#ffffff' : 'var(--navy-deep)',
                         border: '1px solid var(--navy-border-light)',
                         borderRadius: '4px',
-                        fontSize: '0.65rem',
+                        fontSize: '0.68rem',
                         fontWeight: 700,
-                        padding: '1px 6px',
+                        padding: '2px 8px',
                         cursor: 'pointer',
                       }}
                     >
@@ -577,18 +577,18 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
                       borderColor: addError && !fideId.trim() ? '#dc2626' : undefined,
                     }}
                   />
-                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.25rem' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
                     Mandatory. If player has no FIDE ID, click <strong>Mark Unranked</strong>.
                   </span>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.35rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.4rem' }}>
                     Club / Federation
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Zurich CC"
+                    placeholder="e.g. Zurich CC, FIDE Club, Independent"
                     value={club}
                     onChange={(e) => setClub(e.target.value)}
                     style={{ width: '100%' }}
@@ -597,16 +597,16 @@ export const Step2RosterEntry: React.FC<Step2RosterEntryProps> = ({
               </div>
 
               {addError && (
-                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem', marginBottom: '1rem' }}>
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '0.65rem 0.85rem', borderRadius: '8px', fontSize: '0.78rem', marginBottom: '1.25rem' }}>
                   ⚠ {addError}
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                <button type="button" onClick={() => setShowAddModal(false)} className="btn btn-secondary-white">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => setShowAddModal(false)} className="btn btn-secondary-white mobile-full-btn">
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary-navy">
+                <button type="submit" className="btn btn-primary-navy mobile-full-btn">
                   Add Player
                 </button>
               </div>

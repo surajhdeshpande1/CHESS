@@ -144,11 +144,11 @@ export const PlayerSelfReportModal: React.FC<PlayerSelfReportModalProps> = ({
         </div>
 
         {/* Submit */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-          <button onClick={onClose} className="btn btn-secondary">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button onClick={onClose} className="btn btn-secondary mobile-full-btn">
             Cancel
           </button>
-          <button onClick={handleSubmit} className="btn btn-primary">
+          <button onClick={handleSubmit} className="btn btn-primary mobile-full-btn">
             📲 Transmit Self-Report to Arbiter
           </button>
         </div>

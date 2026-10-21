@@ -70,6 +70,7 @@ export const TournamentSettingsModal: React.FC<TournamentSettingsModalProps> = (
             <input
               type="text"
               required
+              placeholder="e.g. Zurich Masters Swiss Championship / FIDE Club Open"
               value={formSettings.name}
               onChange={(e) => setFormSettings({ ...formSettings, name: e.target.value })}
               style={{
@@ -77,19 +78,20 @@ export const TournamentSettingsModal: React.FC<TournamentSettingsModalProps> = (
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: '8px',
-                padding: '0.5rem 0.75rem',
+                padding: '0.65rem 0.85rem',
                 color: 'var(--text-primary)',
               }}
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div className="mobile-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '0.85rem', marginBottom: '1rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
                 City & Federation
               </label>
               <input
                 type="text"
+                placeholder="e.g. Zurich, FID"
                 value={`${formSettings.city}, ${formSettings.federation}`}
                 onChange={(e) => {
                   const parts = e.target.value.split(',');
@@ -104,7 +106,7 @@ export const TournamentSettingsModal: React.FC<TournamentSettingsModalProps> = (
                   background: 'var(--bg-secondary)',
                   border: '1px solid var(--border-subtle)',
                   borderRadius: '8px',
-                  padding: '0.5rem 0.75rem',
+                  padding: '0.65rem 0.85rem',
                   color: 'var(--text-primary)',
                 }}
               />
@@ -116,6 +118,7 @@ export const TournamentSettingsModal: React.FC<TournamentSettingsModalProps> = (
               </label>
               <input
                 type="text"
+                placeholder="e.g. IA Markus Keller"
                 value={formSettings.chiefArbiter}
                 onChange={(e) => setFormSettings({ ...formSettings, chiefArbiter: e.target.value })}
                 style={{
@@ -123,7 +126,7 @@ export const TournamentSettingsModal: React.FC<TournamentSettingsModalProps> = (
                   background: 'var(--bg-secondary)',
                   border: '1px solid var(--border-subtle)',
                   borderRadius: '8px',
-                  padding: '0.5rem 0.75rem',
+                  padding: '0.65rem 0.85rem',
                   color: 'var(--text-primary)',
                 }}
               />
@@ -131,7 +134,7 @@ export const TournamentSettingsModal: React.FC<TournamentSettingsModalProps> = (
           </div>
 
           {/* Rounds & Initial Color */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div className="mobile-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '0.85rem', marginBottom: '1rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
                 Total Rounds (Module 1: 50-64 → 7R, 65-128 → 9R)
@@ -278,11 +281,11 @@ export const TournamentSettingsModal: React.FC<TournamentSettingsModalProps> = (
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button type="button" className="btn btn-secondary mobile-full-btn" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary mobile-full-btn">
               Save Settings
             </button>
           </div>

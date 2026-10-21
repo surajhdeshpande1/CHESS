@@ -48,7 +48,7 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
   const [regName, setRegName] = useState('');
   const [regTitle, setRegTitle] = useState<ArbiterTitle>('IA');
   const [regFideId, setRegFideId] = useState('');
-  const [regFederation, setRegFederation] = useState('Switzerland (FIDE)');
+  const [regFederation, setRegFederation] = useState('');
   const [regOrgName, setRegOrgName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
@@ -59,11 +59,8 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
     setRoleCategory(newRole);
     if (newRole === 'CERTIFIED_ARBITER') {
       setRegTitle('IA');
-      setRegFederation('Switzerland (FIDE)');
     } else {
       setRegTitle('TOURNAMENT_DIRECTOR');
-      setRegFederation('Open / Independent');
-      setRegOrgName('Chess Club / Academy');
     }
     setErrorMessage(null);
   };
@@ -634,14 +631,14 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
 
             {/* FIDE ID & Federation OR Organization & Location */}
             {roleCategory === 'CERTIFIED_ARBITER' ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div className="mobile-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.85rem', marginBottom: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.3rem' }}>
                     FIDE Arbiter ID
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. 1503014"
+                    placeholder="e.g. 1503014 (or leave blank)"
                     value={regFideId}
                     onChange={(e) => setRegFideId(e.target.value)}
                     style={{ width: '100%' }}
@@ -655,7 +652,7 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Switzerland"
+                    placeholder="e.g. FIDE, Switzerland, India, USA"
                     value={regFederation}
                     onChange={(e) => setRegFederation(e.target.value)}
                     style={{ width: '100%' }}
@@ -663,14 +660,14 @@ export const ArbiterAuthView: React.FC<ArbiterAuthViewProps> = ({
                 </div>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div className="mobile-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.85rem', marginBottom: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--navy-deep)', marginBottom: '0.3rem' }}>
                     Club / Academy / School *
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Zurich Chess Society"
+                    placeholder="e.g. Zurich CC, FIDE Club, City Academy"
                     value={regOrgName}
                     onChange={(e) => setRegOrgName(e.target.value)}
                     style={{ width: '100%' }}

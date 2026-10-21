@@ -367,7 +367,7 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Zurich Masters Swiss Championship 2026"
+            placeholder="e.g. Zurich Masters Swiss Championship 2026 / FIDE Club Open"
             style={{ width: '100%', padding: '0.75rem 1rem', fontSize: '0.95rem' }}
           />
         </div>
@@ -392,7 +392,7 @@ export const Step1CreateTournament: React.FC<Step1CreateTournamentProps> = ({
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              placeholder="e.g. Zurich, Switzerland"
+              placeholder="e.g. Zurich, Switzerland / FIDE Club Arena"
               style={{ width: '100%', padding: '0.65rem 0.85rem' }}
             />
           </div>

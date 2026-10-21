@@ -56,11 +56,11 @@ export const PlayersEligibilityView: React.FC<PlayersEligibilityViewProps> = ({
 
   // Add Candidate Form fields
   const [name, setName] = useState('');
-  const [rating, setRating] = useState('1500');
+  const [rating, setRating] = useState('');
   const [title, setTitle] = useState<FideTitle>('NONE');
-  const [birthYear, setBirthYear] = useState('2002');
+  const [birthYear, setBirthYear] = useState('');
   const [gender, setGender] = useState<'M' | 'F' | 'OTHER'>('M');
-  const [organization, setOrganization] = useState('City Chess Club');
+  const [organization, setOrganization] = useState('');
   const [fideId, setFideId] = useState('');
 
   // Real-time live eligibility preview for the modal form
@@ -98,11 +98,14 @@ export const PlayersEligibilityView: React.FC<PlayersEligibilityViewProps> = ({
       title,
       birthYear: parseInt(birthYear, 10) || 2000,
       gender,
-      organization: organization.trim(),
+      organization: organization.trim() || 'Independent',
       fideId: finalFideId,
     });
 
     setName('');
+    setRating('');
+    setBirthYear('');
+    setOrganization('');
     setFideId('');
     setShowAddModal(false);
   };
@@ -413,6 +416,7 @@ export const PlayersEligibilityView: React.FC<PlayersEligibilityViewProps> = ({
                   </label>
                   <input
                     type="number"
+                    placeholder="e.g. 1500 (or 0 for unrated)"
                     value={rating}
                     onChange={(e) => setRating(e.target.value)}
                     style={{
@@ -432,6 +436,7 @@ export const PlayersEligibilityView: React.FC<PlayersEligibilityViewProps> = ({
                   </label>
                   <input
                     type="number"
+                    placeholder="e.g. 2002"
                     value={birthYear}
                     onChange={(e) => setBirthYear(e.target.value)}
                     style={{
@@ -503,6 +508,7 @@ export const PlayersEligibilityView: React.FC<PlayersEligibilityViewProps> = ({
                   </label>
                   <input
                     type="text"
+                    placeholder="e.g. City Chess Club, FIDE Club, University"
                     value={organization}
                     onChange={(e) => setOrganization(e.target.value)}
                     style={{

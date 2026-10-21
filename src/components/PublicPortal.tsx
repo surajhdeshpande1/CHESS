@@ -53,16 +53,16 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button
-              className="btn btn-secondary"
+              className="btn btn-secondary mobile-full-btn"
               onClick={() => setShowQr(!showQr)}
             >
               <QrCode size={16} />
               QR Code
             </button>
             <button
-              className="btn btn-primary"
+              className="btn btn-primary mobile-full-btn"
               onClick={() => {
                 navigator.clipboard.writeText(window.location.href);
                 alert('Tournament live portal link copied to clipboard!');
@@ -123,7 +123,7 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
           </button>
         </div>
 
-        <div style={{ position: 'relative', width: '280px' }}>
+        <div style={{ position: 'relative', width: 'min(100%, 280px)' }}>
           <Search size={15} style={{ position: 'absolute', left: '10px', top: '10px', color: 'var(--text-muted)' }} />
           <input
             type="text"

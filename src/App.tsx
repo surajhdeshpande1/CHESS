@@ -168,7 +168,7 @@ export const App: React.FC = () => {
       const userInitId = `tourney_${activeArbiter.id}_init`;
       const userVault = createBlankTournamentVault(
         userInitId,
-        `${activeArbiter.name}'s Tournament`,
+        '',
         5,
         50,
         200,
@@ -842,7 +842,7 @@ export const App: React.FC = () => {
     const newId = `tourney_${Date.now()}`;
     const initialVault = createBlankTournamentVault(
       newId,
-      'Swiss Open Championship 2026',
+      '',
       5,
       50,
       200,
@@ -880,7 +880,7 @@ export const App: React.FC = () => {
       const newId = `tourney_${Date.now()}`;
       const initialVault = createBlankTournamentVault(
         newId,
-        'Open Chess Championship 2026',
+        '',
         5,
         50,
         200,

@@ -72,16 +72,16 @@ export const WhatsAppShareModal: React.FC<WhatsAppShareModalProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button onClick={handleOpenWhatsApp} className="btn btn-accent" style={{ gap: '0.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.85rem' }}>
+          <button onClick={handleOpenWhatsApp} className="btn btn-accent mobile-full-btn" style={{ gap: '0.5rem' }}>
             <span>📲 Open WhatsApp Web</span>
           </button>
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button onClick={handleCopy} className="btn btn-primary">
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', width: 'auto' }} className="mobile-full-btn">
+            <button onClick={handleCopy} className="btn btn-primary mobile-full-btn">
               {copied ? '✓ Copied to Clipboard!' : '📋 Copy Text'}
             </button>
-            <button onClick={onClose} className="btn btn-secondary">
+            <button onClick={onClose} className="btn btn-secondary mobile-full-btn">
               Close
             </button>
           </div>

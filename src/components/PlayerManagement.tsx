@@ -49,9 +49,9 @@ export const PlayerManagement: React.FC<PlayerManagementProps> = ({
   // Add form fields
   const [fideId, setFideId] = useState('');
   const [name, setName] = useState('');
-  const [rating, setRating] = useState('2200');
+  const [rating, setRating] = useState('');
   const [title, setTitle] = useState<FideTitle>('None');
-  const [federation, setFederation] = useState('FID');
+  const [federation, setFederation] = useState('');
   const [lookupMessage, setLookupMessage] = useState<string | null>(null);
 
   const handleFideLookup = () => {
@@ -81,8 +81,9 @@ export const PlayerManagement: React.FC<PlayerManagementProps> = ({
     });
 
     setName('');
-    setRating('2200');
+    setRating('');
     setTitle('None');
+    setFederation('');
     setFideId('');
     setLookupMessage(null);
     setShowAddModal(false);
@@ -335,13 +336,14 @@ export const PlayerManagement: React.FC<PlayerManagementProps> = ({
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
+              <div className="mobile-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '0.85rem', marginBottom: '1.5rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
                     Rating
                   </label>
                   <input
                     type="number"
+                    placeholder="e.g. 2200 (or 0 for unrated)"
                     value={rating}
                     onChange={(e) => setRating(e.target.value)}
                     style={{
@@ -392,7 +394,7 @@ export const PlayerManagement: React.FC<PlayerManagementProps> = ({
                     maxLength={3}
                     value={federation}
                     onChange={(e) => setFederation(e.target.value.toUpperCase())}
-                    placeholder="e.g. IND"
+                    placeholder="e.g. FID, IND, USA"
                     style={{
                       width: '100%',
                       background: 'var(--bg-secondary)',
@@ -405,15 +407,18 @@ export const PlayerManagement: React.FC<PlayerManagementProps> = ({
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <button
                   type="button"
-                  className="btn btn-secondary"
                   onClick={() => setShowAddModal(false)}
+                  className="btn btn-secondary mobile-full-btn"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
+                <button
+                  type="submit"
+                  className="btn btn-primary mobile-full-btn"
+                >
                   Save Player
                 </button>
               </div>
